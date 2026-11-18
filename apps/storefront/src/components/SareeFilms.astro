@@ -1,0 +1,304 @@
+---
+/**
+ * Saree culture, on film.
+ *
+ * Three short vertical clips of silk sarees as they are actually worn.
+ *
+ * LOADING: every player is `preload="none"` behind a poster image, so the
+ * page downloads none of the ~27 MB of video until a visitor presses play.
+ * That is the only responsible way to put several clips on a landing page —
+ * autoplaying them would cost a phone user a quarter of their data allowance
+ * before they had read a word.
+ *
+ * Licence: Pexels Licence (free for commercial use, no attribution required).
+ * Creators credited below anyway, because it costs nothing and they shot it.
+ * Sources are listed in the README.
+ */
+
+const films = [
+  {
+    id: "rust",
+    title: "Rust and gold, buta on buta",
+    note: "A buta-field saree with a contrast zari border, worn against a carved jharokha. The motif repeat is the oldest thing in the Banarasi vocabulary.",
+    video: "/media/films/saree-rust.mp4",
+    poster: "/img/films/saree-rust.jpg",
+    alt: "A woman in a rust silk saree with buta motifs and a red and gold border, seated by a carved window",
+    credit: "Anil Sharma",
+  },
+  {
+    id: "teal",
+    title: "Peacock teal, temple steps",
+    note: "Gold buti scattered across a teal field, with a zari border and a plain pallu. The colour a woman wears when red would be too much for the occasion.",
+    video: "/media/films/saree-teal.mp4",
+    poster: "/img/films/saree-teal.jpg",
+    alt: "A woman in a teal silk saree with gold buti and a zari border, standing on temple steps before a carved door",
+    credit: "Anil Sharma",
+  },
+  {
+    id: "indigo",
+    title: "Royal blue, broad zari",
+    note: "A wide gold border against deep blue — the proportion that makes a saree read as formal from across a room, before any detail is visible.",
+    video: "/media/films/saree-indigo.mp4",
+    poster: "/img/films/saree-indigo.jpg",
+    alt: "A woman in a royal blue silk saree with a broad gold zari border, beside banyan roots",
+    credit: "Beard Kid",
+  },
+];
+---
+
+<section class="films section section--dark" aria-labelledby="films-title">
+  <div class="shell">
+    <div class="section-head section-head--split">
+      <div>
+        <p class="eyebrow">On film</p>
+        <h2 class="films__title" id="films-title">Silk moves, and photographs cannot show it</h2>
+      </div>
+      <p class="films__note">
+        A still frame flattens a saree. These are short clips of silk in daylight — the drape, the
+        fall of the pallu, and the way a zari border catches light as it turns.
+      </p>
+    </div>
+
+    <ul class="films__grid">
+      {
+        films.map((f) => (
+          <li class="film reveal">
+            <div class="film__stage">
+              <video
+                class="film__video"
+                poster={f.poster}
+                preload="none"
+                playsinline
+                controls
+                aria-label={f.alt}
+                data-film
+              >
+                <source src={f.video} type="video/mp4" />
+                Your browser cannot play this video.
+                <a href={f.video}>Download the clip instead.</a>
+              </video>
+
+              <button class="film__play" type="button" aria-label={`Play: ${f.title}`} data-film-play>
+                <span class="film__play-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M9 7.5l8 4.5-8 4.5z" fill="currentColor" /></svg>
+                </span>
+                <span class="film__play-hint">Play</span>
+              </button>
+            </div>
+
+            <div class="film__body">
+              <h3 class="film__name">{f.title}</h3>
+              <p class="film__desc">{f.note}</p>
+              <p class="film__credit">Film: {f.credit}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .films__title {
+    font-size: var(--step-3);
+    margin-top: 0.5rem;
+  }
+
+  .films__note {
+    max-width: 36ch;
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--on-dark-soft);
+  }
+
+  .films__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .film {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  /* ---- stage ---- */
+  .film__stage {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    background: #120a0e;
+    border: 1px solid rgba(181, 138, 67, 0.3);
+  }
+
+  .film__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---- play affordance ---- */
+  .film__play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.7rem;
+    color: var(--ivory);
+    background: linear-gradient(to top, rgba(20, 9, 14, 0.6), rgba(20, 9, 14, 0.15));
+    transition: background-color 0.4s var(--ease), opacity 0.3s var(--ease);
+  }
+
+  .film__play[hidden] {
+    display: none;
+  }
+
+  .film__play:hover {
+    background: linear-gradient(to top, rgba(74, 19, 38, 0.7), rgba(20, 9, 14, 0.3));
+  }
+
+  .film__play-ring {
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    border: 1px solid rgba(240, 220, 174, 0.75);
+    border-radius: 50%;
+    background: rgba(20, 9, 14, 0.4);
+    backdrop-filter: blur(4px);
+    transition: scale 0.45s var(--ease-out-soft), background-color 0.3s var(--ease);
+  }
+
+  .film__play:hover .film__play-ring {
+    scale: 1.08;
+    background: rgba(181, 138, 67, 0.9);
+    color: #1c0f15;
+  }
+
+  .film__play-ring svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    /* Optical centring: a triangle looks left-heavy in a circle. */
+    margin-left: 0.18rem;
+  }
+
+  .film__play-hint {
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  /* ---- body ---- */
+  .film__body {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .film__name {
+    font-size: var(--step-1);
+    line-height: 1.25;
+  }
+
+  .film__desc {
+    font-size: 0.84rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--on-dark-soft);
+  }
+
+  .film__credit {
+    margin-top: 0.2rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(246, 239, 228, 0.42);
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 900px) {
+    .films__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* Three clips in two columns leaves an orphan; let the last one span. */
+    .film:last-child {
+      grid-column: span 2;
+      flex-direction: row;
+      gap: 1.2rem;
+    }
+    .film:last-child .film__stage {
+      flex: 0 0 min(14rem, 45%);
+    }
+    .film:last-child .film__body {
+      align-content: center;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .films__grid {
+      grid-template-columns: 1fr;
+    }
+    .film:last-child {
+      grid-column: span 1;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+    .film:last-child .film__stage {
+      flex: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Press play: reveal the native controls and start the clip.
+   *
+   * The overlay exists because a `preload="none"` video shows only its poster
+   * and the browser's own play button is easy to miss on a dark frame. Once a
+   * clip is playing, the overlay gets out of the way.
+   *
+   * Only one clip plays at a time — three competing soundtracks on one screen
+   * is a bad experience, and on a phone it is a bad bill.
+   */
+  const players = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-film]"));
+
+  players.forEach((video) => {
+    const overlay = video
+      .closest(".film__stage")
+      ?.querySelector<HTMLButtonElement>("[data-film-play]");
+
+    overlay?.addEventListener("click", () => {
+      players.filter((p) => p !== video).forEach((p) => p.pause());
+      void video.play().catch(() => {
+        // Autoplay policy or a missing file: fall back to the native controls
+        // rather than leaving a dead overlay on top of the poster.
+        if (overlay) overlay.hidden = true;
+      });
+    });
+
+    video.addEventListener("play", () => {
+      if (overlay) overlay.hidden = true;
+      players.filter((p) => p !== video).forEach((p) => p.pause());
+    });
+
+    // Bring the poster and the prompt back when the clip finishes.
+    video.addEventListener("ended", () => {
+      video.load();
+      if (overlay) overlay.hidden = false;
+    });
+
+    // Stop a clip that has been scrolled away from.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && !video.paused) video.pause();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(video);
+  });
+</script>

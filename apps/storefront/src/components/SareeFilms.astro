@@ -15,6 +15,27 @@
  * Sources are listed in the README.
  */
 
+/**
+ * The craft film leads the section: it is the only clip that shows the product
+ * being made rather than worn, and it is 16:9 rather than vertical, so it gets
+ * a wide frame of its own instead of being squeezed into the reel grid.
+ *
+ * Source was 1920x1080 at 60fps and 70 MB. Re-encoded to 1280x720 at 30fps,
+ * CRF 26, with +faststart so playback begins before the file has finished
+ * downloading. 13.5 MB, and still behind a poster until pressed.
+ */
+const feature = {
+  kicker: "Forty-six seconds at a pit loom",
+  title: "This is the part you are actually paying for",
+  body:
+    "A shuttle thrown by hand across red and green silk, the reed beaten down, and the zari motif appearing a few picks at a time. Partway through, the camera finds the stack of punched cards above the loom — the naqsha that carries the design, the same method Varanasi has used since the Mughal karkhanas.",
+  facts: ["Handloom", "Varanasi", "Woven at a few inches a day"],
+  video: "/media/films/banarasi-weaving.mp4",
+  poster: "/img/films/banarasi-weaving.jpg",
+  alt: "A weaver at a pit loom, throwing the shuttle across red and green silk with a gold zari motif forming in the cloth",
+  credit: "Kowsar Ahmed",
+};
+
 const films = [
   {
     id: "rust",
@@ -58,6 +79,48 @@ const films = [
         fall of the pallu, and the way a zari border catches light as it turns.
       </p>
     </div>
+
+    <!-- ============ the craft film ============ -->
+    <article class="feature reveal">
+      <div class="film__stage film__stage--wide">
+        <video
+          class="film__video"
+          poster={feature.poster}
+          preload="none"
+          playsinline
+          controls
+          aria-label={feature.alt}
+          data-film
+        >
+          <source src={feature.video} type="video/mp4" />
+          Your browser cannot play this video.
+          <a href={feature.video}>Download the clip instead.</a>
+        </video>
+
+        <button class="film__play" type="button" aria-label={`Play: ${feature.title}`} data-film-play>
+          <span class="film__play-ring" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 7.5l8 4.5-8 4.5z" fill="currentColor" /></svg>
+          </span>
+          <span class="film__play-hint">Watch the loom</span>
+        </button>
+      </div>
+
+      <div class="feature__text">
+        <p class="feature__kicker">{feature.kicker}</p>
+        <h3 class="feature__title">{feature.title}</h3>
+        <p class="feature__body">{feature.body}</p>
+        <ul class="feature__facts">
+          {feature.facts.map((f) => <li>{f}</li>)}
+        </ul>
+        <a class="link link--draw feature__link" href="/craft">
+          How a Banarasi is woven
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+        </a>
+        <p class="film__credit">Film: {feature.credit}</p>
+      </div>
+    </article>
+
+    <p class="films__divider"><span>And the same silk, worn</span></p>
 
     <ul class="films__grid">
       {
@@ -110,6 +173,93 @@ const films = [
     font-weight: 300;
     line-height: 1.7;
     color: var(--on-dark-soft);
+  }
+
+  /* ---- featured craft film ---- */
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(1.2rem, 3vw, 2.5rem);
+    align-items: center;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .film__stage--wide {
+    aspect-ratio: 16 / 9;
+  }
+
+  .feature__text {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+  }
+
+  .feature__kicker {
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .feature__title {
+    font-size: var(--step-2);
+    line-height: 1.2;
+    max-width: 20ch;
+  }
+
+  .feature__body {
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--on-dark-soft);
+  }
+
+  .feature__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+  }
+
+  .feature__facts li {
+    padding: 0.25rem 0.7rem;
+    border: 1px solid rgba(181, 138, 67, 0.45);
+    border-radius: var(--r-pill);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .feature__link {
+    margin-top: 0.7rem;
+    color: var(--ivory);
+  }
+
+  .feature__link svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* ---- divider ---- */
+  .films__divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: clamp(1.2rem, 3vw, 2rem);
+    color: rgba(246, 239, 228, 0.45);
+    font-size: 0.68rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .films__divider::before,
+  .films__divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(246, 239, 228, 0.16);
   }
 
   .films__grid {
@@ -222,6 +372,10 @@ const films = [
 
   /* ---- responsive ---- */
   @media (max-width: 900px) {
+    .feature {
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
     .films__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }

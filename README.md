@@ -94,8 +94,10 @@ These are the things only you can supply. Each one is a drop-in replacement, not
 8. **The brand film.** It is no longer on the homepage: the film carries its own baked-in typography ("Silk that carries your traditions"), which collided with the site's own headline. It still lives at `public/media/jaiisha-hero.mp4` and plays on the product page that references it. If you want it back on the homepage, give it a full-width band of its own with nothing overlaid.
 9. **Film.** `/media/films/*.mp4` are three vertical clips of silk sarees under the [Pexels Licence](https://www.pexels.com/license/) (free commercial use, no attribution required; creators credited on the page anyway). They are `preload="none"` behind poster frames, so the ~27 MB downloads only when a visitor presses play. Replace them with footage of your own stock and the section needs no code change.
 
-   Worth knowing: a clip of *actual Banarasi saree weaving* exists at [pexels.com/video/37395699](https://www.pexels.com/video/traditional-banarasi-saree-weaving-process-37395699/) and is the single most on-brand piece of footage I found — but the only rendition offered is 70 MB, too heavy to ship or commit. If you want it, compress first:
-   `ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -crf 26 -preset slow -an out.mp4` (expect ~8 MB).
+   The craft film (`banarasi-weaving.mp4`) is real Banarasi weaving on a pit loom. The source was 1920x1080/60fps and 70 MB; it ships re-encoded to 1280x720/30fps, CRF 26, `+faststart`, at 13.5 MB. To redo it after swapping footage:
+   `ffmpeg -i in.mp4 -vf "scale=1280:-2,fps=30" -c:v libx264 -crf 26 -preset slow -pix_fmt yuv420p -movflags +faststart -an out.mp4`
+   `+faststart` matters: without it the browser downloads the whole file before the first frame appears.
+
 10. **Cultural photography.** `/img/culture/*.jpg` are Unsplash stock under the [Unsplash Licence](https://unsplash.com/license) — free for commercial use, no attribution required — standing in for your own photography. They are used only for editorial sections (hero portrait, tradition gallery, occasion cards), never as product shots. Replace the files under the same names when you shoot your own.
 11. **An admin key.** `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"` into `ADMIN_KEY`. The current one in `.env.local` was generated for local development — do not ship it.
 

@@ -9,9 +9,14 @@
  * fetched until a visitor hovers (desktop) or presses play (touch), so a
  * phone user is never charged for footage they did not ask for.
  *
- * PLAYBACK: on a device with a real pointer, hovering a clip plays it muted
- * and leaving rewinds it. Touch and keyboard users get the play button
- * instead, because there is no hover to give them.
+ * PLAYBACK: clips loop, muted, with no native control bar — the chrome of a
+ * video player is noise in a gallery like this. On a device with a real
+ * pointer, hovering plays a clip and leaving rewinds it.
+ *
+ * The overlay is therefore the ONLY control, so it is a real toggle button
+ * that stays in the DOM and stays focusable while a clip plays, merely faded
+ * out. Without native controls, hiding it outright would leave touch and
+ * keyboard users with no way to stop a looping clip.
  *
  * Licence: Pexels Licence (free for commercial use, no attribution required).
  * Creators credited below anyway, because it costs nothing and they shot it.
@@ -92,7 +97,7 @@ const films = [
           muted
           preload="metadata"
           playsinline
-          controls
+          loop
           aria-label={feature.alt}
           data-film
         >
@@ -137,7 +142,7 @@ const films = [
                 muted
           preload="metadata"
                 playsinline
-                controls
+                loop
                 aria-label={f.alt}
                 data-film
               >
@@ -312,11 +317,19 @@ const films = [
     gap: 0.7rem;
     color: var(--ivory);
     background: linear-gradient(to top, rgba(20, 9, 14, 0.6), rgba(20, 9, 14, 0.15));
-    transition: background-color 0.4s var(--ease), opacity 0.3s var(--ease);
+    opacity: 1;
+    transition: background-color 0.4s var(--ease), opacity 0.45s var(--ease);
   }
 
-  .film__play[hidden] {
-    display: none;
+  /* Faded, not removed: with no native control bar this button is the only
+     way to stop a looping clip, so it must stay focusable and tappable. */
+  .film__stage.is-playing .film__play {
+    opacity: 0;
+  }
+
+  /* Give it back on keyboard focus, or it is invisible to a keyboard user. */
+  .film__play:focus-visible {
+    opacity: 1;
   }
 
   .film__play:hover {
@@ -422,16 +435,16 @@ const films = [
 
 <script>
   /**
-   * Hover to preview, leave to stop.
+   * Hover to preview; the overlay is the only control.
    *
-   * Clips are muted, because browsers refuse to play audio that the visitor
-   * did not ask for — an unmuted `play()` here would simply be rejected.
-   * `controls` stays on, so anyone who wants sound or a scrub bar has them.
+   * Clips are muted because a browser rejects an unmuted play() the visitor
+   * did not ask for, and they loop because a gallery clip that stops on a
+   * frozen last frame looks broken.
    *
-   * Hover only applies where there is a real pointer. On touch there is no
-   * hover state (a tap would fire it and then strand the clip playing), and
-   * under `prefers-reduced-motion` nothing moves unless asked — both fall
-   * back to the play button.
+   * There is no native control bar, so the overlay button must remain a real,
+   * focusable toggle for as long as a clip plays — it is only faded out. Hover
+   * is gated to real pointers: on touch, mouseenter fires on tap and would
+   * strand a clip playing with nothing to stop it.
    */
   const players = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-film]"));
 
@@ -445,46 +458,47 @@ const films = [
   players.forEach((video) => {
     const stage = video.closest<HTMLElement>(".film__stage");
     const overlay = stage?.querySelector<HTMLButtonElement>("[data-film-play]");
+    const label = overlay?.getAttribute("aria-label") ?? "Play";
 
     const start = () => {
       pauseOthers(video);
-      // Rejected play() is normal (policy, or the file is still arriving);
-      // leaving the overlay up keeps a working control on screen.
+      // A rejected play() is normal (policy, or the file is still arriving);
+      // the overlay simply stays up as a working control.
       void video.play().catch(() => {});
     };
 
     const stop = (rewind: boolean) => {
       video.pause();
-      if (rewind) {
-        try {
-          video.currentTime = 0;
-        } catch {
-          /* not seekable yet — harmless */
-        }
-        // Only a stop we initiated restores the overlay. If the visitor
-        // pauses with the native controls, the overlay must stay out of the
-        // way or it covers the scrub bar they are reaching for.
-        if (overlay) overlay.hidden = false;
+      if (!rewind) return;
+      try {
+        video.currentTime = 0;
+      } catch {
+        /* not seekable yet — harmless */
       }
     };
 
-    overlay?.addEventListener("click", start);
+    // The overlay toggles, so a looping clip can always be stopped.
+    overlay?.addEventListener("click", () => {
+      if (video.paused) start();
+      else stop(true);
+    });
 
     video.addEventListener("play", () => {
-      if (overlay) overlay.hidden = true;
+      stage?.classList.add("is-playing");
+      overlay?.setAttribute("aria-label", "Pause this clip");
       pauseOthers(video);
     });
 
-    video.addEventListener("ended", () => {
-      stop(true);
-      if (overlay) overlay.hidden = false;
+    video.addEventListener("pause", () => {
+      stage?.classList.remove("is-playing");
+      overlay?.setAttribute("aria-label", label);
     });
 
     if (hoverPreview && stage) {
       stage.addEventListener("mouseenter", start);
       stage.addEventListener("mouseleave", () => stop(true));
 
-      // Keyboard parity: tabbing to the clip previews it the same way.
+      // Keyboard parity: tabbing to the clip previews it as hovering does.
       stage.addEventListener("focusin", start);
       stage.addEventListener("focusout", (e) => {
         if (!stage.contains(e.relatedTarget as Node | null)) stop(true);

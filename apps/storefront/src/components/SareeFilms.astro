@@ -4,11 +4,14 @@
  *
  * Three short vertical clips of silk sarees as they are actually worn.
  *
- * LOADING: every player is `preload="none"` behind a poster image, so the
- * page downloads none of the ~27 MB of video until a visitor presses play.
- * That is the only responsible way to put several clips on a landing page —
- * autoplaying them would cost a phone user a quarter of their data allowance
- * before they had read a word.
+ * LOADING: every player sits behind a poster image and preloads metadata
+ * only — a few KB each, not the ~40 MB of video. Nothing substantial is
+ * fetched until a visitor hovers (desktop) or presses play (touch), so a
+ * phone user is never charged for footage they did not ask for.
+ *
+ * PLAYBACK: on a device with a real pointer, hovering a clip plays it muted
+ * and leaving rewinds it. Touch and keyboard users get the play button
+ * instead, because there is no hover to give them.
  *
  * Licence: Pexels Licence (free for commercial use, no attribution required).
  * Creators credited below anyway, because it costs nothing and they shot it.
@@ -86,7 +89,8 @@ const films = [
         <video
           class="film__video"
           poster={feature.poster}
-          preload="none"
+          muted
+          preload="metadata"
           playsinline
           controls
           aria-label={feature.alt}
@@ -130,7 +134,8 @@ const films = [
               <video
                 class="film__video"
                 poster={f.poster}
-                preload="none"
+                muted
+          preload="metadata"
                 playsinline
                 controls
                 aria-label={f.alt}
@@ -178,14 +183,21 @@ const films = [
   /* ---- featured craft film ---- */
   .feature {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: clamp(1.2rem, 3vw, 2.5rem);
     align-items: center;
     margin-bottom: clamp(2rem, 5vw, 3.5rem);
   }
 
-  .film__stage--wide {
+  /* Doubled class so this wins regardless of source order: the base
+     `.film__stage { aspect-ratio: 9/16 }` is declared further down the file,
+     and at equal specificity the later rule would otherwise win and render
+     this landscape clip as a portrait tower. */
+  .film__stage.film__stage--wide {
     aspect-ratio: 16 / 9;
+    /* Keep the craft film a reasonable size on wide screens rather than
+       letting it grow with the column. */
+    max-width: 44rem;
   }
 
   .feature__text {
@@ -410,46 +422,79 @@ const films = [
 
 <script>
   /**
-   * Press play: reveal the native controls and start the clip.
+   * Hover to preview, leave to stop.
    *
-   * The overlay exists because a `preload="none"` video shows only its poster
-   * and the browser's own play button is easy to miss on a dark frame. Once a
-   * clip is playing, the overlay gets out of the way.
+   * Clips are muted, because browsers refuse to play audio that the visitor
+   * did not ask for — an unmuted `play()` here would simply be rejected.
+   * `controls` stays on, so anyone who wants sound or a scrub bar has them.
    *
-   * Only one clip plays at a time — three competing soundtracks on one screen
-   * is a bad experience, and on a phone it is a bad bill.
+   * Hover only applies where there is a real pointer. On touch there is no
+   * hover state (a tap would fire it and then strand the clip playing), and
+   * under `prefers-reduced-motion` nothing moves unless asked — both fall
+   * back to the play button.
    */
   const players = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-film]"));
 
-  players.forEach((video) => {
-    const overlay = video
-      .closest(".film__stage")
-      ?.querySelector<HTMLButtonElement>("[data-film-play]");
+  const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hoverPreview = canHover && !reduced;
 
-    overlay?.addEventListener("click", () => {
-      players.filter((p) => p !== video).forEach((p) => p.pause());
-      void video.play().catch(() => {
-        // Autoplay policy or a missing file: fall back to the native controls
-        // rather than leaving a dead overlay on top of the poster.
-        if (overlay) overlay.hidden = true;
-      });
-    });
+  const pauseOthers = (keep: HTMLVideoElement) =>
+    players.filter((p) => p !== keep).forEach((p) => p.pause());
+
+  players.forEach((video) => {
+    const stage = video.closest<HTMLElement>(".film__stage");
+    const overlay = stage?.querySelector<HTMLButtonElement>("[data-film-play]");
+
+    const start = () => {
+      pauseOthers(video);
+      // Rejected play() is normal (policy, or the file is still arriving);
+      // leaving the overlay up keeps a working control on screen.
+      void video.play().catch(() => {});
+    };
+
+    const stop = (rewind: boolean) => {
+      video.pause();
+      if (rewind) {
+        try {
+          video.currentTime = 0;
+        } catch {
+          /* not seekable yet — harmless */
+        }
+        // Only a stop we initiated restores the overlay. If the visitor
+        // pauses with the native controls, the overlay must stay out of the
+        // way or it covers the scrub bar they are reaching for.
+        if (overlay) overlay.hidden = false;
+      }
+    };
+
+    overlay?.addEventListener("click", start);
 
     video.addEventListener("play", () => {
       if (overlay) overlay.hidden = true;
-      players.filter((p) => p !== video).forEach((p) => p.pause());
+      pauseOthers(video);
     });
 
-    // Bring the poster and the prompt back when the clip finishes.
     video.addEventListener("ended", () => {
-      video.load();
+      stop(true);
       if (overlay) overlay.hidden = false;
     });
+
+    if (hoverPreview && stage) {
+      stage.addEventListener("mouseenter", start);
+      stage.addEventListener("mouseleave", () => stop(true));
+
+      // Keyboard parity: tabbing to the clip previews it the same way.
+      stage.addEventListener("focusin", start);
+      stage.addEventListener("focusout", (e) => {
+        if (!stage.contains(e.relatedTarget as Node | null)) stop(true);
+      });
+    }
 
     // Stop a clip that has been scrolled away from.
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting && !video.paused) video.pause();
+        if (!entry.isIntersecting && !video.paused) stop(false);
       },
       { threshold: 0.2 },
     );

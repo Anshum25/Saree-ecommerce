@@ -1,0 +1,157 @@
+---
+import Stars from "./Stars.astro";
+import { PRODUCTS, REVIEWS } from "@jaiisha/catalogue";
+
+const featured = REVIEWS.slice(0, 6).map((r) => ({
+  ...r,
+  product: PRODUCTS.find((p) => p.id === r.productId),
+}));
+
+const avg = REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length;
+const totalReviews = PRODUCTS.reduce((s, p) => s + p.rating.count, 0);
+---
+
+<section class="rev section" aria-labelledby="rev-title">
+  <div class="shell">
+    <div class="section-head section-head--split">
+      <div>
+        <p class="eyebrow">In their words</p>
+        <h2 class="rev__title" id="rev-title">Worn, and written about</h2>
+      </div>
+      <div class="rev__score">
+        <Stars value={Number(avg.toFixed(1))} />
+        <span class="rev__score-text">
+          {avg.toFixed(1)} average across {totalReviews.toLocaleString("en-IN")} reviews
+        </span>
+      </div>
+    </div>
+
+    <ul class="rev__rail rail">
+      {
+        featured.map((r) => (
+          <li class="rev__card reveal">
+            <Stars value={r.rating} compact />
+            <h3 class="rev__card-title">{r.title}</h3>
+            <p class="rev__body">{r.body}</p>
+            <footer class="rev__foot">
+              <p class="rev__author">
+                {r.author}
+                <span class="rev__city">{r.city}</span>
+              </p>
+              {r.verified && (
+                <span class="rev__verified">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                  Verified
+                </span>
+              )}
+            </footer>
+            {r.product && (
+              <a class="rev__product" href={`/sarees/${r.product.slug}`}>
+                on the {r.product.name}
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .rev__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    margin-top: 0.5rem;
+  }
+
+  .rev__score {
+    display: grid;
+    gap: 0.25rem;
+    justify-items: start;
+  }
+
+  .rev__score-text {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .rev__card {
+    width: min(23rem, 82vw);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: clamp(1.2rem, 2.5vw, 1.8rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.5s var(--ease-out-soft), box-shadow 0.5s var(--ease);
+  }
+
+  .rev__card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .rev__card-title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  .rev__body {
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+
+  .rev__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .rev__author {
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: grid;
+  }
+
+  .rev__city {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+
+  .rev__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--emerald);
+    white-space: nowrap;
+  }
+
+  .rev__verified svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .rev__product {
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    font-family: var(--font-italic);
+    font-style: italic;
+  }
+
+  .rev__product:hover {
+    color: var(--wine);
+  }
+</style>

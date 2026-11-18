@@ -1,0 +1,325 @@
+---
+import {
+  COLOURS,
+  FABRICS,
+  OCCASIONS,
+  PRICE_BANDS,
+  SORT_OPTIONS,
+  WEAVES,
+  facetCounts,
+} from "@jaiisha/catalogue";
+
+/**
+ * Filters are deliberately short: five facets, each one a question a customer
+ * actually asks in a shop. Counts come from the catalogue at build time so a
+ * combination that returns nothing can be greyed out rather than leading to an
+ * empty grid.
+ */
+const counts = facetCounts();
+---
+
+<form class="filters" data-filters aria-label="Filter sarees">
+  <div class="filters__head">
+    <h2 class="filters__title">Find your saree</h2>
+    <button class="filters__clear" type="button" data-clear>Clear all</button>
+  </div>
+
+  <fieldset class="fset">
+    <legend class="fset__legend">Occasion</legend>
+    <ul class="fset__list">
+      {
+        OCCASIONS.map((o) => (
+          <li>
+            <label class="check" data-disabled={counts.occasion[o.slug] === 0 ? "true" : "false"}>
+              <input type="checkbox" name="occasion" value={o.slug} disabled={counts.occasion[o.slug] === 0} />
+              <span class="check__box" aria-hidden="true"></span>
+              <span class="check__label">{o.name}</span>
+              <span class="check__count">{counts.occasion[o.slug]}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <fieldset class="fset">
+    <legend class="fset__legend">Colour</legend>
+    <ul class="fset__colours">
+      {
+        COLOURS.filter((c) => counts.colour[c.slug] > 0).map((c) => (
+          <li>
+            <label class="chip-colour" title={`${c.name} (${counts.colour[c.slug]})`}>
+              <input type="checkbox" name="colour" value={c.slug} />
+              <span class="chip-colour__disc" style={`--c:${c.hex}`} aria-hidden="true"></span>
+              <span class="chip-colour__name">{c.name}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <fieldset class="fset">
+    <legend class="fset__legend">Fabric</legend>
+    <ul class="fset__list">
+      {
+        FABRICS.map((f) => (
+          <li>
+            <label class="check" data-disabled={counts.fabric[f.slug] === 0 ? "true" : "false"}>
+              <input type="checkbox" name="fabric" value={f.slug} disabled={counts.fabric[f.slug] === 0} />
+              <span class="check__box" aria-hidden="true"></span>
+              <span class="check__label">
+                {f.name}
+                <span class="check__note">{f.note}</span>
+              </span>
+              <span class="check__count">{counts.fabric[f.slug]}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <fieldset class="fset">
+    <legend class="fset__legend">Price</legend>
+    <ul class="fset__list">
+      {
+        PRICE_BANDS.map((b) => (
+          <li>
+            <label class="check" data-disabled={counts.price[b.slug] === 0 ? "true" : "false"}>
+              <input type="checkbox" name="price" value={b.slug} disabled={counts.price[b.slug] === 0} />
+              <span class="check__box" aria-hidden="true"></span>
+              <span class="check__label">{b.label}</span>
+              <span class="check__count">{counts.price[b.slug]}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <fieldset class="fset">
+    <legend class="fset__legend">Weave</legend>
+    <ul class="fset__list">
+      {
+        WEAVES.map((w) => (
+          <li>
+            <label class="check" data-disabled={counts.weave[w.slug] === 0 ? "true" : "false"}>
+              <input type="checkbox" name="weave" value={w.slug} disabled={counts.weave[w.slug] === 0} />
+              <span class="check__box" aria-hidden="true"></span>
+              <span class="check__label">{w.name}</span>
+              <span class="check__count">{counts.weave[w.slug]}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <!-- Sort lives in the toolbar on desktop; this mirror keeps it reachable
+       inside the mobile filter drawer. -->
+  <fieldset class="fset fset--mobile-sort">
+    <legend class="fset__legend">Sort</legend>
+    <select class="select" name="sort" data-sort-mirror>
+      {SORT_OPTIONS.map((s) => <option value={s.key}>{s.label}</option>)}
+    </select>
+  </fieldset>
+</form>
+
+<style>
+  .filters {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .filters__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .filters__title {
+    font-size: var(--step-1);
+    font-weight: 400;
+  }
+
+  .filters__clear {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  .filters__clear:hover {
+    color: var(--wine);
+  }
+
+  /* --- fieldsets -------------------------------------------------------- */
+  .fset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .fset__legend {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+
+  .fset__list {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  /* --- checkbox rows ---------------------------------------------------- */
+  .check {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 0.6rem;
+    padding: 0.4rem 0;
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+
+  .check[data-disabled="true"] {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+
+  .check input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .check__box {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    position: relative;
+    transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+
+  .check__box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: no-repeat center / 0.7rem
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23F4EBDD' stroke-width='3'/%3E%3C/svg%3E");
+    opacity: 0;
+    transition: opacity 0.2s var(--ease);
+  }
+
+  .check input:checked + .check__box {
+    background: var(--wine);
+    border-color: var(--wine);
+  }
+
+  .check input:checked + .check__box::after {
+    opacity: 1;
+  }
+
+  .check input:focus-visible + .check__box {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .check__label {
+    display: grid;
+    gap: 0.1rem;
+    line-height: 1.45;
+  }
+
+  .check__note {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    font-weight: 300;
+  }
+
+  .check__count {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    margin-top: 0.15rem;
+  }
+
+  /* --- colour chips ----------------------------------------------------- */
+  .fset__colours {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .chip-colour {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: border-color 0.25s var(--ease), background-color 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+
+  .chip-colour input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .chip-colour__disc {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  }
+
+  .chip-colour:has(input:checked) {
+    background: var(--wine);
+    border-color: var(--wine);
+    color: var(--ivory);
+  }
+
+  .chip-colour:has(input:focus-visible) {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* --- select ----------------------------------------------------------- */
+  .select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    font-size: 0.86rem;
+    border-radius: var(--r-sm);
+  }
+
+  .fset--mobile-sort {
+    display: none;
+  }
+
+  @media (max-width: 960px) {
+    .fset--mobile-sort {
+      display: block;
+    }
+  }
+</style>

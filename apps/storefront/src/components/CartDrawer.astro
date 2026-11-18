@@ -1,0 +1,970 @@
+---
+import { PRODUCTS, formatINR } from "@jaiisha/catalogue";
+
+const skuIndex = PRODUCTS.flatMap((p) =>
+  p.variants.map((v) => ({
+    sku: v.sku,
+    slug: p.slug,
+    name: p.name,
+    colour: v.colour.name,
+    price: formatINR(v.price),
+    paise: v.price.paise,
+    gst: p.tax.gstRate,
+    image: (v.images.find((i) => i.kind === "model") ?? v.images[0]).src,
+  })),
+);
+---
+
+<!-- Cart Drawer Slide-over -->
+<div class="cart-drawer" data-cart-drawer hidden aria-hidden="true">
+  <div class="cart-drawer__scrim" data-cart-close></div>
+  <aside class="cart-drawer__panel" role="dialog" aria-modal="true" aria-label="Shopping Bag">
+    <div class="cart-drawer__header">
+      <div class="cart-drawer__title-wrap">
+        <h2 class="cart-drawer__title">Your Bag</h2>
+        <span class="cart-drawer__badge" data-cart-count-badge>0</span>
+      </div>
+      <button class="cart-drawer__close icon-btn" type="button" aria-label="Close bag" data-cart-close>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Free Shipping Progress -->
+    <div class="cart-drawer__shipping-meter" data-shipping-meter>
+      <div class="cart-drawer__shipping-label" data-shipping-text>
+        Add ₹3,000 for Free Insured Express Delivery
+      </div>
+      <div class="cart-drawer__progress-bar">
+        <div class="cart-drawer__progress-fill" data-shipping-fill style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Items List -->
+    <div class="cart-drawer__body">
+      <ul class="cart-drawer__list" data-cart-items></ul>
+
+      <div class="cart-drawer__empty" data-cart-empty>
+        <div class="cart-drawer__empty-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 8h12l-1 11.5H7L6 8Z" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path d="M9.5 8V6.4a2.5 2.5 0 0 1 5 0V8" fill="none" stroke="currentColor" stroke-width="1.3" />
+          </svg>
+        </div>
+        <p class="cart-drawer__empty-title">Your bag is empty</p>
+        <p class="cart-drawer__empty-desc">Discover our handwoven Banarasi bridal, festive and heirloom silk sarees.</p>
+        <a href="/sarees" class="btn btn--gold cart-drawer__empty-btn" data-cart-close>Explore Collection</a>
+      </div>
+    </div>
+
+    <!-- Footer Summary & Actions -->
+    <div class="cart-drawer__footer" data-cart-footer hidden>
+      <!-- Coupon Field -->
+      <div class="cart-drawer__coupon">
+        <form class="cart-drawer__coupon-form" data-coupon-form>
+          <input
+            type="text"
+            class="cart-drawer__coupon-input"
+            placeholder="Coupon code (e.g. JAIISHA10)"
+            aria-label="Coupon code"
+            data-coupon-input
+          />
+          <button type="submit" class="cart-drawer__coupon-btn">Apply</button>
+        </form>
+        <div class="cart-drawer__coupon-msg" data-coupon-msg role="status"></div>
+      </div>
+
+      <div class="cart-drawer__totals">
+        <div class="cart-drawer__row">
+          <span>Subtotal</span>
+          <span class="cart-drawer__val" data-cart-subtotal>₹0</span>
+        </div>
+        <div class="cart-drawer__row cart-drawer__row--discount" data-discount-row hidden>
+          <span data-discount-label>Festive Discount</span>
+          <span class="cart-drawer__val text-green" data-cart-discount>-₹0</span>
+        </div>
+        <div class="cart-drawer__row">
+          <span>Insured Shipping</span>
+          <span class="cart-drawer__val" data-cart-shipping>Free</span>
+        </div>
+        <div class="cart-drawer__row cart-drawer__row--total">
+          <span>Total (incl. GST)</span>
+          <span class="cart-drawer__val cart-drawer__total-val" data-cart-total>₹0</span>
+        </div>
+      </div>
+
+      <div class="cart-drawer__actions">
+        <a class="btn btn--wa cart-drawer__btn-wa" data-cart-wa-btn target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 1.2rem; height: 1.2rem;">
+            <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z" fill="currentColor"></path>
+            <path d="M8.6 7.6c.4 0 .8.2 1 .6l.7 1.6c.1.3 0 .6-.2.8l-.7.7c.5 1 1.3 1.8 2.3 2.3l.7-.7c.2-.2.5-.3.8-.2l1.6.7c.4.2.6.6.6 1 0 1-.8 1.8-1.8 1.8A7.4 7.4 0 0 1 6.8 9.4c0-1 .8-1.8 1.8-1.8Z" fill="#1faa59"></path>
+          </svg>
+          Order on WhatsApp
+        </a>
+        <a href="/bag" class="btn btn--ghost cart-drawer__btn-view">
+          View Bag &amp; Full Breakdown
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Floating Toast Notification -->
+<div class="toast-container" data-toast-container aria-live="polite"></div>
+
+<!-- Quick View Modal -->
+<div class="quick-modal" data-quick-modal hidden aria-hidden="true">
+  <div class="quick-modal__scrim" data-quick-close></div>
+  <div class="quick-modal__panel" role="dialog" aria-modal="true" aria-label="Quick View">
+    <button class="quick-modal__close icon-btn" type="button" aria-label="Close" data-quick-close>
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+    </button>
+    <div class="quick-modal__content" data-quick-content>
+      <!-- Populated via script -->
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="sku-index-global" set:html={JSON.stringify(skuIndex)} />
+
+<style>
+  /* ==================== CART DRAWER ==================== */
+  .cart-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .cart-drawer[hidden] {
+    display: none;
+  }
+
+  .cart-drawer__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(18, 9, 13, 0.65);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    animation: fadeIn 0.3s forwards var(--ease);
+  }
+
+  .cart-drawer__panel {
+    position: relative;
+    width: 100%;
+    max-width: 26rem;
+    height: 100%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 35px rgba(28, 15, 21, 0.25);
+    transform: translateX(100%);
+    animation: slideInRight 0.35s forwards var(--ease-out-soft);
+    z-index: 2;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInRight {
+    to { transform: translateX(0); }
+  }
+
+  .cart-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.4rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--ivory-warm);
+  }
+
+  .cart-drawer__title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .cart-drawer__title {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .cart-drawer__badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding-inline: 0.35rem;
+    border-radius: var(--r-pill);
+    background: var(--wine);
+    color: var(--gold-pale);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .cart-drawer__close {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: var(--r-pill);
+    color: var(--ink-soft);
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .cart-drawer__close:hover {
+    background: rgba(101, 29, 53, 0.08);
+    color: var(--wine);
+  }
+
+  /* Shipping Meter */
+  .cart-drawer__shipping-meter {
+    padding: 0.75rem 1.4rem;
+    background: rgba(181, 138, 67, 0.1);
+    border-bottom: 1px solid rgba(181, 138, 67, 0.2);
+    font-size: 0.78rem;
+  }
+
+  .cart-drawer__shipping-label {
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .cart-drawer__progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(181, 138, 67, 0.25);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+
+  .cart-drawer__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--maroon));
+    border-radius: var(--r-pill);
+    transition: width 0.4s var(--ease);
+  }
+
+  /* Body & Items */
+  .cart-drawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cart-drawer__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .c-item {
+    display: grid;
+    grid-template-columns: 4.8rem 1fr auto;
+    gap: 0.9rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+
+  .c-item__thumb {
+    aspect-ratio: 3 / 4;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    background: var(--bg-sunk);
+    display: block;
+  }
+
+  .c-item__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .c-item__thumb:hover img {
+    transform: scale(1.06);
+  }
+
+  .c-item__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .c-item__title {
+    font-family: var(--font-display);
+    font-size: 0.94rem;
+    line-height: 1.3;
+    color: var(--ink);
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .c-item__title:hover {
+    color: var(--maroon);
+  }
+
+  .c-item__meta {
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    margin-top: 0.2rem;
+  }
+
+  .c-item__price {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--wine);
+    margin-top: 0.35rem;
+  }
+
+  /* Quantity controls */
+  .c-item__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    margin-top: 0.5rem;
+    width: fit-content;
+    background: var(--bg);
+  }
+
+  .c-item__qty-btn {
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--ink);
+    transition: background 0.2s;
+  }
+
+  .c-item__qty-btn:hover {
+    background: rgba(101, 29, 53, 0.1);
+    color: var(--wine);
+  }
+
+  .c-item__qty-val {
+    padding-inline: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    text-align: center;
+  }
+
+  .c-item__del {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: var(--r-sm);
+    align-self: start;
+    transition: color 0.2s;
+  }
+
+  .c-item__del:hover {
+    color: var(--maroon);
+  }
+
+  /* Empty State */
+  .cart-drawer__empty {
+    margin-block: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 2rem 1rem;
+  }
+
+  .cart-drawer__empty-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--r-pill);
+    background: var(--ivory-warm);
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .cart-drawer__empty-icon svg {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .cart-drawer__empty-title {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--ink);
+  }
+
+  .cart-drawer__empty-desc {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    max-width: 26ch;
+    line-height: 1.5;
+  }
+
+  .cart-drawer__empty-btn {
+    margin-top: 0.6rem;
+  }
+
+  /* Footer */
+  .cart-drawer__footer {
+    padding: 1.1rem 1.4rem 1.4rem;
+    border-top: 1px solid var(--line);
+    background: var(--ivory-warm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .cart-drawer__coupon-form {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .cart-drawer__coupon-input {
+    flex: 1;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    background: var(--surface);
+  }
+
+  .cart-drawer__coupon-btn {
+    padding: 0.45rem 0.9rem;
+    background: var(--wine);
+    color: var(--gold-pale);
+    border: none;
+    border-radius: var(--r-sm);
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .cart-drawer__coupon-btn:hover {
+    background: var(--maroon);
+  }
+
+  .cart-drawer__coupon-msg {
+    font-size: 0.74rem;
+    margin-top: 0.25rem;
+    min-height: 1rem;
+  }
+
+  .cart-drawer__coupon-msg.is-success {
+    color: #1faa59;
+  }
+
+  .cart-drawer__coupon-msg.is-error {
+    color: #c92a2a;
+  }
+
+  .cart-drawer__totals {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.86rem;
+  }
+
+  .cart-drawer__row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--ink-soft);
+  }
+
+  .cart-drawer__row--total {
+    border-top: 1px dashed var(--line-strong);
+    padding-top: 0.6rem;
+    margin-top: 0.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .cart-drawer__total-val {
+    color: var(--wine);
+  }
+
+  .text-green {
+    color: #1faa59;
+  }
+
+  .cart-drawer__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cart-drawer__btn-wa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+  }
+
+  .cart-drawer__btn-view {
+    text-align: center;
+    padding-block: 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  /* ==================== TOAST NOTIFICATIONS ==================== */
+  .toast-container {
+    position: fixed;
+    bottom: 5.5rem;
+    right: clamp(1rem, 3vw, 2rem);
+    z-index: 95;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    pointer-events: none;
+  }
+
+  :global(.toast) {
+    pointer-events: auto;
+    display: grid;
+    grid-template-columns: 3.2rem 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-left: 4px solid var(--wine);
+    border-radius: var(--r-sm);
+    box-shadow: 0 10px 30px rgba(36, 19, 25, 0.16);
+    max-width: 22rem;
+    animation: toastIn 0.35s var(--ease-out-soft);
+  }
+
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(1rem) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  :global(.toast__img) {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--r-sm);
+    background: var(--bg-sunk);
+  }
+
+  :global(.toast__img img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.toast__title) {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.15rem;
+  }
+
+  :global(.toast__meta) {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  :global(.toast__action) {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--maroon);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0.3rem;
+  }
+
+  /* ==================== QUICK VIEW MODAL ==================== */
+  .quick-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+  }
+
+  .quick-modal[hidden] {
+    display: none;
+  }
+
+  .quick-modal__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(18, 9, 13, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .quick-modal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 48rem;
+    background: var(--surface);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .quick-modal__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--r-pill);
+  }
+
+  @media (max-width: 640px) {
+    .cart-drawer__panel {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<script>
+  interface CartItem {
+    sku: string;
+    slug: string;
+    name: string;
+    colour: string;
+    price: string;
+    paise: number;
+    gst: number;
+    image: string;
+    quantity: number;
+  }
+
+  const KEY = "jaiisha:bag";
+  const FREE_SHIPPING_PAISE = 300000;
+  const WHATSAPP = "919000000000";
+
+  const indexEl = document.getElementById("sku-index-global");
+  const skus: CartItem[] = indexEl ? JSON.parse(indexEl.textContent || "[]") : [];
+  const bySku = new Map(skus.map((l) => [l.sku, l]));
+
+  // Cart Drawer Elements
+  const drawer = document.querySelector<HTMLElement>("[data-cart-drawer]");
+  const countBadge = document.querySelector<HTMLElement>("[data-cart-count-badge]");
+  const itemsContainer = document.querySelector<HTMLElement>("[data-cart-items]");
+  const emptyState = document.querySelector<HTMLElement>("[data-cart-empty]");
+  const footer = document.querySelector<HTMLElement>("[data-cart-footer]");
+  const subtotalEl = document.querySelector<HTMLElement>("[data-cart-subtotal]");
+  const discountRow = document.querySelector<HTMLElement>("[data-discount-row]");
+  const discountEl = document.querySelector<HTMLElement>("[data-cart-discount]");
+  const discountLabel = document.querySelector<HTMLElement>("[data-discount-label]");
+  const totalEl = document.querySelector<HTMLElement>("[data-cart-total]");
+  const shippingFill = document.querySelector<HTMLElement>("[data-shipping-fill]");
+  const shippingText = document.querySelector<HTMLElement>("[data-shipping-text]");
+  const waBtn = document.querySelector<HTMLAnchorElement>("[data-cart-wa-btn]");
+  const couponForm = document.querySelector<HTMLFormElement>("[data-coupon-form]");
+  const couponInput = document.querySelector<HTMLInputElement>("[data-coupon-input]");
+  const couponMsg = document.querySelector<HTMLElement>("[data-coupon-msg]");
+  const toastContainer = document.querySelector<HTMLElement>("[data-toast-container]");
+
+  let activeCouponCode = "";
+
+  const inr = (paise: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(paise / 100);
+
+  // Read items with normalization
+  const readCart = (): CartItem[] => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+
+      // If array of strings (legacy)
+      if (parsed.length > 0 && typeof parsed[0] === "string") {
+        const counts: Record<string, number> = {};
+        parsed.forEach((sku: string) => {
+          counts[sku] = (counts[sku] || 0) + 1;
+        });
+        const converted: CartItem[] = [];
+        for (const [sku, qty] of Object.entries(counts)) {
+          const item = bySku.get(sku);
+          if (item) converted.push({ ...item, quantity: qty });
+        }
+        return converted;
+      }
+      return parsed;
+    } catch {
+      return [];
+    }
+  };
+
+  const writeCart = (items: CartItem[]) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(items));
+    } catch {
+      /* private mode */
+    }
+    window.dispatchEvent(new CustomEvent("jaiisha:store"));
+    render();
+  };
+
+  // Open & Close Drawer
+  const openDrawer = () => {
+    if (!drawer) return;
+    drawer.hidden = false;
+    drawer.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    render();
+  };
+
+  const closeDrawer = () => {
+    if (!drawer) return;
+    drawer.hidden = true;
+    drawer.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("no-scroll");
+  };
+
+  document.querySelectorAll("[data-cart-close]").forEach((b) =>
+    b.addEventListener("click", closeDrawer)
+  );
+
+  // Toast Function
+  const showToast = (item: CartItem, actionText = "Added to Bag") => {
+    if (!toastContainer) return;
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerHTML = `
+      <div class="toast__img">
+        <img src="${item.image}" alt="${item.name}" />
+      </div>
+      <div>
+        <h4 class="toast__title">${item.name}</h4>
+        <p class="toast__meta">${actionText} · ${item.colour} (${item.price})</p>
+      </div>
+      <button class="toast__action" type="button">View Bag</button>
+    `;
+
+    toast.querySelector(".toast__action")?.addEventListener("click", () => {
+      toast.remove();
+      openDrawer();
+    });
+
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = "opacity 0.4s, transform 0.4s";
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(1rem)";
+      setTimeout(() => toast.remove(), 400);
+    }, 4000);
+  };
+
+  // Expose global methods for other components
+  (window as any).jaiishaCart = {
+    open: openDrawer,
+    close: closeDrawer,
+    add: (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
+      const items = readCart();
+      const qty = newItem.quantity || 1;
+      const idx = items.findIndex((i) => i.sku === newItem.sku);
+      if (idx > -1) {
+        items[idx].quantity += qty;
+      } else {
+        items.push({ ...newItem, quantity: qty });
+      }
+      writeCart(items);
+      showToast({ ...newItem, quantity: qty });
+      openDrawer();
+    },
+    remove: (sku: string) => {
+      const items = readCart().filter((i) => i.sku !== sku);
+      writeCart(items);
+    },
+    updateQty: (sku: string, delta: number) => {
+      const items = readCart();
+      const idx = items.findIndex((i) => i.sku === sku);
+      if (idx > -1) {
+        items[idx].quantity += delta;
+        if (items[idx].quantity <= 0) {
+          items.splice(idx, 1);
+        }
+        writeCart(items);
+      }
+    },
+    showToast,
+  };
+
+  // Render Drawer Content
+  const render = () => {
+    const items = readCart();
+    const count = items.reduce((sum, i) => sum + i.quantity, 0);
+    const subtotal = items.reduce((sum, i) => sum + i.paise * i.quantity, 0);
+
+    if (countBadge) countBadge.textContent = String(count);
+
+    const hasItems = items.length > 0;
+    if (emptyState) emptyState.hidden = hasItems;
+    if (footer) footer.hidden = !hasItems;
+
+    // Shipping progress
+    if (shippingFill && shippingText) {
+      const progress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_PAISE) * 100));
+      shippingFill.style.width = `${progress}%`;
+      if (subtotal >= FREE_SHIPPING_PAISE) {
+        shippingText.textContent = "✨ You have unlocked Free Insured Express Delivery!";
+      } else {
+        const remaining = inr(FREE_SHIPPING_PAISE - subtotal);
+        shippingText.textContent = `Add ${remaining} more for Free Insured Delivery`;
+      }
+    }
+
+    // Line items
+    if (itemsContainer) {
+      itemsContainer.replaceChildren();
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "c-item";
+        li.innerHTML = `
+          <a class="c-item__thumb" href="/sarees/${item.slug}">
+            <img src="${item.image}" alt="${item.name}" loading="lazy" />
+          </a>
+          <div class="c-item__info">
+            <div>
+              <a class="c-item__title" href="/sarees/${item.slug}">${item.name}</a>
+              <p class="c-item__meta">${item.colour} · ${item.sku}</p>
+              <p class="c-item__price">${item.price}</p>
+            </div>
+            <div class="c-item__qty">
+              <button class="c-item__qty-btn" type="button" data-qty-minus="${item.sku}" aria-label="Decrease quantity">−</button>
+              <span class="c-item__qty-val">${item.quantity}</span>
+              <button class="c-item__qty-btn" type="button" data-qty-plus="${item.sku}" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+          <button class="c-item__del" type="button" data-del="${item.sku}" aria-label="Remove item">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        `;
+        itemsContainer.appendChild(li);
+      });
+
+      // Bind +/- and delete events
+      itemsContainer.querySelectorAll<HTMLButtonElement>("[data-qty-minus]").forEach((b) => {
+        b.addEventListener("click", () => (window as any).jaiishaCart.updateQty(b.dataset.qtyMinus!, -1));
+      });
+      itemsContainer.querySelectorAll<HTMLButtonElement>("[data-qty-plus]").forEach((b) => {
+        b.addEventListener("click", () => (window as any).jaiishaCart.updateQty(b.dataset.qtyPlus!, 1));
+      });
+      itemsContainer.querySelectorAll<HTMLButtonElement>("[data-del]").forEach((b) => {
+        b.addEventListener("click", () => (window as any).jaiishaCart.remove(b.dataset.del!));
+      });
+    }
+
+    // Coupon calculation
+    let discount = 0;
+    if (activeCouponCode === "JAIISHA10") {
+      discount = Math.round(subtotal * 0.1);
+      if (discountLabel) discountLabel.textContent = "10% Festive Discount";
+    } else if (activeCouponCode === "UTSAV") {
+      discount = Math.min(150000, subtotal);
+      if (discountLabel) discountLabel.textContent = "₹1,500 Festive Celebration Discount";
+    }
+
+    const finalTotal = Math.max(0, subtotal - discount);
+
+    if (subtotalEl) subtotalEl.textContent = inr(subtotal);
+    if (discountRow) discountRow.hidden = discount === 0;
+    if (discountEl) discountEl.textContent = `-${inr(discount)}`;
+    if (totalEl) totalEl.textContent = inr(finalTotal);
+
+    // WhatsApp order link
+    if (waBtn) {
+      const orderLines = items.map(
+        (i) => `• ${i.name} — ${i.colour} (Qty: ${i.quantity}) — ${i.price} each [${i.sku}]`
+      );
+      const msg = [
+        "✨ *Hello JAIISHA, I would like to place this saree order:*",
+        "",
+        ...orderLines,
+        "",
+        `*Items:* ${count}`,
+        `*Subtotal:* ${inr(subtotal)}`,
+        ...(discount > 0 ? [`*Coupon (${activeCouponCode}):* -${inr(discount)}`, `*Final Total:* ${inr(finalTotal)}`] : []),
+        `*Shipping:* ${finalTotal >= FREE_SHIPPING_PAISE ? "Free Insured Express Delivery" : "Standard Delivery"}`,
+        "",
+        "Please confirm availability and share payment details. Thank you!",
+      ].join("\n");
+
+      waBtn.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    }
+  };
+
+  // Coupon handling
+  couponForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const code = (couponInput?.value || "").trim().toUpperCase();
+    if (!couponMsg) return;
+
+    if (code === "JAIISHA10" || code === "UTSAV" || code === "FIRSTSAREE") {
+      activeCouponCode = code === "FIRSTSAREE" ? "JAIISHA10" : code;
+      couponMsg.textContent = `✓ Coupon ${code} applied successfully!`;
+      couponMsg.className = "cart-drawer__coupon-msg is-success";
+      render();
+    } else if (!code) {
+      activeCouponCode = "";
+      couponMsg.textContent = "";
+      render();
+    } else {
+      couponMsg.textContent = "Invalid coupon code. Try JAIISHA10";
+      couponMsg.className = "cart-drawer__coupon-msg is-error";
+    }
+  });
+
+  // Listen for bag events
+  window.addEventListener("jaiisha:store", render);
+  render();
+
+  // Escape key closes drawer
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer && !drawer.hidden) {
+      closeDrawer();
+    }
+  });
+</script>
+

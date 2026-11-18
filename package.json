@@ -1,0 +1,15 @@
+{
+  "name": "jaiisha",
+  "private": true,
+  "version": "0.1.0",
+  "description": "JAIISHA — premium festive Banarasi silk saree boutique. Astro storefront + Next.js commerce API.",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @jaiisha/storefront",
+    "dev:api": "npm run dev --workspace @jaiisha/api",
+    "build": "npm run build --workspace @jaiisha/storefront",
+    "preview": "npm run preview --workspace @jaiisha/storefront",
+    "placeholders": "node tools/gen-placeholders.mjs"
+  },
+  "engines": { "node": ">=20.3.0" }
+}

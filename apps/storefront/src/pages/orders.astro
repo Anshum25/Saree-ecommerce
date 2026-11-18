@@ -1,0 +1,19 @@
+---
+import Base from "../layouts/Base.astro";
+import ComingSoon from "../components/ComingSoon.astro";
+import { SITE } from "../lib/site.ts";
+---
+
+<Base
+  title={`Track an Order | ${SITE.name}`}
+  description="Order tracking arrives with online checkout. Until then we send tracking on WhatsApp the moment your parcel is picked up."
+  canonicalPath="/orders"
+>
+  <ComingSoon
+    eyebrow="Order tracking"
+    title="We send tracking to you"
+    body="Rather than ask you to log in and look, we message the tracking number on WhatsApp as soon as the courier picks the parcel up, and we chase the courier ourselves if it stalls."
+    meanwhile="Send us your order number or the number you ordered from and we will tell you exactly where the parcel is."
+    waMessage="Hello JAIISHA, could you tell me where my order is? My order number is: "
+  />
+</Base>

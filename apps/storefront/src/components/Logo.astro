@@ -1,0 +1,81 @@
+---
+/**
+ * JAIISHA wordmark.
+ *
+ * A refined typographic mark: Cormorant letterforms, wide tracking, with a
+ * woven lozenge motif standing in for the dot of a tilak. Drawn as live text in
+ * SVG so it stays crisp and recolours with `currentColor`.
+ *
+ * TO USE THE REAL LOGO: drop the artwork at public/img/jaiisha-logo.svg and
+ * swap the <svg> below for <img src="/img/jaiisha-logo.svg" alt="JAIISHA" />.
+ * Keep the same height tokens so the header spacing holds.
+ */
+interface Props {
+  /** Cap height in rem — the mark scales from this. */
+  size?: number;
+  showDescriptor?: boolean;
+  class?: string;
+}
+const { size = 1.6, showDescriptor = true, class: className = "" } = Astro.props;
+---
+
+<span class={`logo ${className}`} style={`--logo-size:${size}rem`}>
+  <svg class="logo__mark" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M12 1.5 L15.2 8.8 L22.5 12 L15.2 15.2 L12 22.5 L8.8 15.2 L1.5 12 L8.8 8.8 Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.1"
+      stroke-linejoin="round"></path>
+    <circle cx="12" cy="12" r="2.1" fill="currentColor"></circle>
+  </svg>
+  <span class="logo__text">
+    <span class="logo__word">JAIISHA</span>
+    {showDescriptor && <span class="logo__descriptor">Banarasi Silk · Varanasi</span>}
+  </span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-size: var(--logo-size);
+    line-height: 1;
+    color: inherit;
+  }
+
+  .logo__mark {
+    width: 0.78em;
+    height: 0.78em;
+    flex: none;
+    color: var(--gold);
+    opacity: 0.95;
+  }
+
+  .logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.22em;
+  }
+
+  .logo__word {
+    font-family: var(--font-display);
+    font-size: 1em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    /* Optical correction: the wide tracking adds trailing space. */
+    margin-right: -0.22em;
+    text-transform: uppercase;
+  }
+
+  .logo__descriptor {
+    font-family: var(--font-sans);
+    font-size: 0.26em;
+    font-weight: 400;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-right: -0.34em;
+  }
+</style>

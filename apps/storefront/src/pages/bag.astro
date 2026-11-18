@@ -1,0 +1,878 @@
+---
+import Base from "../layouts/Base.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { PRODUCTS, formatINR, bestsellers } from "@jaiisha/catalogue";
+import { SITE } from "../lib/site.ts";
+
+const skuIndex = PRODUCTS.flatMap((p) =>
+  p.variants.map((v) => ({
+    sku: v.sku,
+    slug: p.slug,
+    name: p.name,
+    colour: v.colour.name,
+    price: formatINR(v.price),
+    paise: v.price.paise,
+    gst: p.tax.gstRate,
+    image: (v.images.find((i) => i.kind === "model") ?? v.images[0]).src,
+  })),
+);
+
+const suggested = bestsellers(3);
+---
+
+<Base
+  title={`Your Shopping Bag | ${SITE.name}`}
+  description="Review your curated selection of handwoven Banarasi silk sarees at JAIISHA."
+  canonicalPath="/bag"
+>
+  <div class="shell bag">
+    <header class="bag__head">
+      <p class="eyebrow">Boutique Selection</p>
+      <h1 class="bag__title">Your shopping bag</h1>
+      <p class="bag__phase">
+        Each handloom piece is inspected, wrapped in archival muslin, and accompanied by the authentic Varanasi weaver's certificate.
+      </p>
+    </header>
+
+    <!-- Shipping Bar -->
+    <div class="bag__ship-meter" data-bag-shipping-meter>
+      <div class="bag__ship-label" data-bag-shipping-label>
+        Calculating insured express shipping...
+      </div>
+      <div class="bag__progress-track">
+        <div class="bag__progress-fill" data-bag-shipping-fill style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="bag__layout">
+      <!-- Items List -->
+      <section class="bag__main" aria-label="Bag items">
+        <div class="bag__list-header">
+          <span>Product</span>
+          <span>Price &amp; Quantity</span>
+        </div>
+
+        <ul class="bag__list" data-list></ul>
+
+        <!-- Additional options: gifting and notes -->
+        <div class="bag__options" data-bag-options hidden>
+          <label class="bag__gift-check">
+            <input type="checkbox" id="gift-box" checked />
+            <span class="bag__gift-text">
+              <strong>Complimentary Heritage Gift Packaging:</strong>
+              Signature maroon silk box, auspicious gold ribbon, and weaver's note.
+            </span>
+          </label>
+
+          <div class="bag__note-field">
+            <label for="order-note" class="bag__label">Order Notes or Personal Message (Optional)</label>
+            <textarea
+              id="order-note"
+              rows="2"
+              class="bag__textarea"
+              placeholder="e.g. Please deliver before November 24th for wedding ceremony / Gift message to the bride..."
+              data-order-notes
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Order Summary -->
+      <aside class="bag__sum" data-sum hidden>
+        <h2 class="bag__sum-title">Order Summary</h2>
+
+        <!-- Coupon code -->
+        <div class="bag__coupon-box">
+          <form class="bag__coupon-form" data-bag-coupon-form>
+            <input
+              type="text"
+              class="bag__coupon-input"
+              placeholder="Coupon code (e.g. JAIISHA10)"
+              aria-label="Coupon code"
+              data-bag-coupon-input
+            />
+            <button type="submit" class="btn btn--gold bag__coupon-submit">Apply</button>
+          </form>
+          <p class="bag__coupon-status" data-bag-coupon-status role="status"></p>
+        </div>
+
+        <dl class="bag__sum-list">
+          <div><dt>Total items</dt><dd data-sum-count>0</dd></div>
+          <div><dt>Subtotal</dt><dd data-sum-total>₹0</dd></div>
+          <div data-bag-discount-row hidden>
+            <dt data-bag-discount-name>Discount</dt>
+            <dd class="text-green" data-bag-discount-amount>-₹0</dd>
+          </div>
+          <div><dt>Insured Delivery</dt><dd data-sum-ship>Free</dd></div>
+          <div class="bag__sum-final">
+            <dt>Final Payable</dt>
+            <dd data-sum-final>₹0</dd>
+          </div>
+        </dl>
+
+        <p class="bag__sum-note">
+          Prices include 5% GST and tamper-evident courier insurance. Weaver certificate enclosed.
+        </p>
+
+        <a class="btn btn--wa bag__order" data-wa-order target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 1.25rem; height: 1.25rem;">
+            <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z" fill="currentColor"></path>
+            <path d="M8.6 7.6c.4 0 .8.2 1 .6l.7 1.6c.1.3 0 .6-.2.8l-.7.7c.5 1 1.3 1.8 2.3 2.3l.7-.7c.2-.2.5-.3.8-.2l1.6.7c.4.2.6.6.6 1 0 1-.8 1.8-1.8 1.8A7.4 7.4 0 0 1 6.8 9.4c0-1 .8-1.8 1.8-1.8Z" fill="#1faa59"></path>
+          </svg>
+          Place Order on WhatsApp
+        </a>
+
+        <button class="btn btn--gold bag__checkout-btn" type="button" data-checkout-btn>
+          Proceed to Instant Checkout
+        </button>
+
+        <button class="btn btn--ghost bag__clear-btn" type="button" data-clear>
+          Empty entire bag
+        </button>
+      </aside>
+    </div>
+
+    <!-- Empty State -->
+    <div class="bag__empty" data-empty hidden>
+      <div class="bag__empty-card">
+        <h2 class="bag__empty-title">Your shopping bag is empty</h2>
+        <p class="bag__empty-body">
+          You haven't reserved any sarees yet. Explore our authentic handloom Katan silk, kadwa bridal sarees, and sheer organza weaves.
+        </p>
+        <div class="bag__empty-actions">
+          <a class="btn btn--gold" href="/sarees">Browse Collection</a>
+          <a class="btn btn--ghost" href="/contact">Enquire with Weaver Concierge</a>
+        </div>
+      </div>
+
+      <!-- Suggested pieces -->
+      <section class="bag__suggested">
+        <h3 class="bag__suggested-title">Popular Heirloom Sarees</h3>
+        <div class="bag__suggested-grid">
+          {suggested.map((p) => <ProductCard product={p} />)}
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Checkout confirmation dialog -->
+  <dialog class="checkout-modal" data-checkout-modal>
+    <div class="checkout-modal__panel">
+      <h3 class="checkout-modal__title">Simulated Boutique Checkout</h3>
+      <p class="checkout-modal__desc">
+        Phase 1 orders are accepted directly via WhatsApp for personal concierge support and custom blouse tailoring. Instant online payments (Razorpay/UPI/Cards) launch in Phase 2.
+      </p>
+      <div class="checkout-modal__actions">
+        <a class="btn btn--wa" data-modal-wa-btn target="_blank" rel="noopener noreferrer">Continue on WhatsApp</a>
+        <button class="btn btn--ghost" type="button" data-checkout-close>Back to Bag</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="application/json" id="sku-index" set:html={JSON.stringify(skuIndex)} />
+</Base>
+
+<style>
+  .bag {
+    padding-block: clamp(2rem, 5vw, 4rem) var(--section-y);
+    min-height: 65svh;
+  }
+
+  .bag__head {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .bag__title {
+    font-size: var(--step-4);
+    font-weight: 400;
+  }
+
+  .bag__phase {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    max-width: 65ch;
+  }
+
+  /* Shipping meter */
+  .bag__ship-meter {
+    background: rgba(181, 138, 67, 0.1);
+    border: 1px solid rgba(181, 138, 67, 0.25);
+    border-radius: var(--r-sm);
+    padding: 0.9rem 1.4rem;
+    margin-bottom: 2rem;
+  }
+
+  .bag__ship-label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+  }
+
+  .bag__progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(181, 138, 67, 0.2);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+
+  .bag__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--maroon));
+    border-radius: var(--r-pill);
+    transition: width 0.4s var(--ease);
+  }
+
+  /* Layout */
+  .bag__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 22rem);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .bag__list-header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line-strong);
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .bag__list {
+    display: grid;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bag__list:empty {
+    display: none;
+  }
+
+  /* Individual item row */
+  .brow {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr) auto;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    align-items: center;
+    padding-block: 1.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brow__img {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--bg-sunk);
+    border-radius: var(--r-sm);
+    display: block;
+  }
+
+  .brow__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .brow__img:hover img {
+    transform: scale(1.05);
+  }
+
+  .brow__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--ink);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .brow__name:hover {
+    color: var(--wine);
+  }
+
+  .brow__meta {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+  }
+
+  /* Quantity controls on full page */
+  .brow__qty-box {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    margin-top: 0.65rem;
+  }
+
+  .brow__qty-btn {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--ink);
+    transition: background-color 0.2s;
+  }
+
+  .brow__qty-btn:hover {
+    background: var(--ivory);
+    color: var(--wine);
+  }
+
+  .brow__qty-val {
+    padding-inline: 0.6rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .brow__right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+
+  .brow__price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--wine);
+  }
+
+  .brow__remove {
+    background: none;
+    border: none;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    border-bottom: 1px solid currentColor;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .brow__remove:hover {
+    color: var(--maroon);
+  }
+
+  /* Gifting and notes */
+  .bag__options {
+    margin-top: 1.8rem;
+    padding: 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .bag__gift-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+
+  .bag__gift-check input {
+    margin-top: 0.25rem;
+    accent-color: var(--wine);
+  }
+
+  .bag__label {
+    display: block;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+  }
+
+  .bag__textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background: var(--bg);
+    font-size: 0.86rem;
+  }
+
+  /* Summary Panel */
+  .bag__sum {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    gap: 1.1rem;
+    padding: clamp(1.2rem, 2.5vw, 1.8rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .bag__sum-title {
+    font-size: var(--step-1);
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .bag__coupon-form {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .bag__coupon-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+  }
+
+  .bag__coupon-status {
+    font-size: 0.74rem;
+    margin-top: 0.3rem;
+  }
+
+  .bag__coupon-status.is-success {
+    color: #1faa59;
+  }
+
+  .bag__coupon-status.is-error {
+    color: #c92a2a;
+  }
+
+  .bag__sum-list {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    font-size: 0.92rem;
+  }
+
+  .bag__sum-list div {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bag__sum-final {
+    border-top: 1px dashed var(--line-strong);
+    padding-top: 0.8rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--wine);
+  }
+
+  .bag__sum-note {
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+
+  .bag__order {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding-block: 0.85rem;
+  }
+
+  .bag__checkout-btn {
+    width: 100%;
+    padding-block: 0.75rem;
+    font-size: 0.84rem;
+    text-align: center;
+  }
+
+  .bag__clear-btn {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+
+  /* Empty State */
+  .bag__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  .bag__empty-card {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bag__empty-title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+  }
+
+  .bag__empty-body {
+    color: var(--ink-soft);
+    max-width: 48ch;
+  }
+
+  .bag__empty-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .bag__suggested-title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    margin-bottom: 1.2rem;
+  }
+
+  .bag__suggested-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* Dialog modal */
+  .checkout-modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    border: none;
+    border-radius: var(--r-sm);
+    padding: 0;
+    background: transparent;
+  }
+
+  .checkout-modal::backdrop {
+    background: rgba(18, 9, 13, 0.65);
+    backdrop-filter: blur(4px);
+  }
+
+  .checkout-modal__panel {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: var(--r-sm);
+    max-width: 28rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .checkout-modal__title {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--ink);
+  }
+
+  .checkout-modal__desc {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  .checkout-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 860px) {
+    .bag__layout {
+      grid-template-columns: 1fr;
+    }
+    .bag__suggested-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .brow {
+      grid-template-columns: 5rem 1fr;
+    }
+    .brow__right {
+      grid-column: 2;
+      align-items: flex-start;
+      margin-top: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  interface CartItem {
+    sku: string;
+    slug: string;
+    name: string;
+    colour: string;
+    price: string;
+    paise: number;
+    gst: number;
+    image: string;
+    quantity: number;
+  }
+
+  const KEY = "jaiisha:bag";
+  const WHATSAPP = "919000000000";
+  const FREE_SHIPPING_PAISE = 300000;
+
+  const indexEl = document.getElementById("sku-index");
+  const skus: CartItem[] = indexEl ? JSON.parse(indexEl.textContent || "[]") : [];
+  const bySku = new Map(skus.map((l) => [l.sku, l]));
+
+  const list = document.querySelector<HTMLElement>("[data-list]");
+  const sum = document.querySelector<HTMLElement>("[data-sum]");
+  const empty = document.querySelector<HTMLElement>("[data-empty]");
+  const optionsBox = document.querySelector<HTMLElement>("[data-bag-options]");
+  const countEl = document.querySelector<HTMLElement>("[data-sum-count]");
+  const totalEl = document.querySelector<HTMLElement>("[data-sum-total]");
+  const finalEl = document.querySelector<HTMLElement>("[data-sum-final]");
+  const shipEl = document.querySelector<HTMLElement>("[data-sum-ship]");
+  const waOrder = document.querySelector<HTMLAnchorElement>("[data-wa-order]");
+  const shipFill = document.querySelector<HTMLElement>("[data-bag-shipping-fill]");
+  const shipLabel = document.querySelector<HTMLElement>("[data-bag-shipping-label]");
+  const couponForm = document.querySelector<HTMLFormElement>("[data-bag-coupon-form]");
+  const couponInput = document.querySelector<HTMLInputElement>("[data-bag-coupon-input]");
+  const couponStatus = document.querySelector<HTMLElement>("[data-bag-coupon-status]");
+  const discountRow = document.querySelector<HTMLElement>("[data-bag-discount-row]");
+  const discountName = document.querySelector<HTMLElement>("[data-bag-discount-name]");
+  const discountAmount = document.querySelector<HTMLElement>("[data-bag-discount-amount]");
+  const notesEl = document.querySelector<HTMLTextAreaElement>("[data-order-notes]");
+  const checkoutBtn = document.querySelector<HTMLButtonElement>("[data-checkout-btn]");
+  const checkoutModal = document.querySelector<HTMLDialogElement>("[data-checkout-modal]");
+  const modalWaBtn = document.querySelector<HTMLAnchorElement>("[data-modal-wa-btn]");
+
+  let activeCoupon = "";
+
+  const inr = (paise: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(paise / 100);
+
+  const readCart = (): CartItem[] => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+
+      if (parsed.length > 0 && typeof parsed[0] === "string") {
+        const counts: Record<string, number> = {};
+        parsed.forEach((sku: string) => (counts[sku] = (counts[sku] || 0) + 1));
+        const res: CartItem[] = [];
+        for (const [sku, qty] of Object.entries(counts)) {
+          const item = bySku.get(sku);
+          if (item) res.push({ ...item, quantity: qty });
+        }
+        return res;
+      }
+      return parsed;
+    } catch {
+      return [];
+    }
+  };
+
+  const writeCart = (items: CartItem[]) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(items));
+    } catch {}
+    window.dispatchEvent(new CustomEvent("jaiisha:store"));
+    render();
+  };
+
+  const render = () => {
+    if (!list) return;
+    const items = readCart();
+    list.replaceChildren();
+
+    const any = items.length > 0;
+    if (sum) sum.hidden = !any;
+    if (empty) empty.hidden = any;
+    if (optionsBox) optionsBox.hidden = !any;
+
+    let subtotal = 0;
+    let totalCount = 0;
+
+    items.forEach((item) => {
+      const linePaise = item.paise * item.quantity;
+      subtotal += linePaise;
+      totalCount += item.quantity;
+
+      const li = document.createElement("li");
+      li.className = "brow";
+      li.innerHTML = `
+        <a class="brow__img" href="/sarees/${item.slug}">
+          <img src="${item.image}" alt="${item.name}" width="300" height="400" loading="lazy" decoding="async"/>
+        </a>
+        <div>
+          <a class="brow__name" href="/sarees/${item.slug}">${item.name}</a>
+          <p class="brow__meta">${item.colour} · Code: ${item.sku} · GST ${item.gst}%</p>
+          <div class="brow__qty-box">
+            <button class="brow__qty-btn" type="button" data-bag-minus="${item.sku}" aria-label="Decrease quantity">−</button>
+            <span class="brow__qty-val">${item.quantity}</span>
+            <button class="brow__qty-btn" type="button" data-bag-plus="${item.sku}" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+        <div class="brow__right">
+          <p class="brow__price">${inr(linePaise)}</p>
+          <button class="brow__remove" type="button" data-remove="${item.sku}">Remove</button>
+        </div>`;
+      list.appendChild(li);
+    });
+
+    // Bind quantity & remove events (CRUD: Update, Delete)
+    list.querySelectorAll<HTMLButtonElement>("[data-bag-minus]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sku = btn.dataset.bagMinus!;
+        const next = readCart();
+        const idx = next.findIndex((i) => i.sku === sku);
+        if (idx > -1) {
+          next[idx].quantity -= 1;
+          if (next[idx].quantity <= 0) next.splice(idx, 1);
+          writeCart(next);
+        }
+      });
+    });
+
+    list.querySelectorAll<HTMLButtonElement>("[data-bag-plus]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sku = btn.dataset.bagPlus!;
+        const next = readCart();
+        const idx = next.findIndex((i) => i.sku === sku);
+        if (idx > -1) {
+          next[idx].quantity += 1;
+          writeCart(next);
+        }
+      });
+    });
+
+    list.querySelectorAll<HTMLButtonElement>("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sku = btn.dataset.remove!;
+        const next = readCart().filter((i) => i.sku !== sku);
+        writeCart(next);
+      });
+    });
+
+    // Shipping progress
+    if (shipFill && shipLabel) {
+      const progress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_PAISE) * 100));
+      shipFill.style.width = `${progress}%`;
+      if (subtotal >= FREE_SHIPPING_PAISE) {
+        shipLabel.textContent = "✨ Congratulations! You have unlocked Free Insured Express Delivery across India.";
+      } else {
+        const remaining = inr(FREE_SHIPPING_PAISE - subtotal);
+        shipLabel.textContent = `Add ${remaining} more for Free Insured Express Delivery.`;
+      }
+    }
+
+    // Discounts
+    let discount = 0;
+    if (activeCoupon === "JAIISHA10") {
+      discount = Math.round(subtotal * 0.1);
+      if (discountName) discountName.textContent = "10% Festive Privilege";
+    } else if (activeCoupon === "UTSAV") {
+      discount = Math.min(150000, subtotal);
+      if (discountName) discountName.textContent = "₹1,500 Festive Celebration Privilege";
+    }
+
+    const finalPayable = Math.max(0, subtotal - discount);
+
+    if (countEl) countEl.textContent = String(totalCount);
+    if (totalEl) totalEl.textContent = inr(subtotal);
+    if (discountRow) discountRow.hidden = discount === 0;
+    if (discountAmount) discountAmount.textContent = `-${inr(discount)}`;
+    if (shipEl) shipEl.textContent = subtotal >= FREE_SHIPPING_PAISE ? "Free" : "₹450";
+    if (finalEl) finalEl.textContent = inr(finalPayable);
+
+    // WhatsApp Order link
+    if (waOrder) {
+      const notes = (notesEl?.value || "").trim();
+      const lines = items.map(
+        (i) => `• ${i.name} — ${i.colour} (Qty: ${i.quantity}) — ${inr(i.paise * i.quantity)} [${i.sku}]`
+      );
+      const text = [
+        "✨ *Hello JAIISHA, I would like to place this order:*",
+        "",
+        ...lines,
+        "",
+        `*Items:* ${totalCount}`,
+        `*Subtotal:* ${inr(subtotal)}`,
+        ...(discount > 0 ? [`*Privilege Coupon (${activeCoupon}):* -${inr(discount)}`, `*Final Total:* ${inr(finalPayable)}`] : []),
+        `*Shipping:* ${subtotal >= FREE_SHIPPING_PAISE ? "Free Insured Express Delivery" : "Standard Express"}`,
+        ...(notes ? ["", `*Customer Request / Note:* ${notes}`] : []),
+        "",
+        "Please confirm availability and share payment instructions. Thank you!",
+      ].join("\n");
+
+      const waUrl = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
+      waOrder.href = waUrl;
+      if (modalWaBtn) modalWaBtn.href = waUrl;
+    }
+  };
+
+  // Coupon
+  couponForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const code = (couponInput?.value || "").trim().toUpperCase();
+    if (!couponStatus) return;
+
+    if (code === "JAIISHA10" || code === "UTSAV" || code === "FIRSTSAREE") {
+      activeCoupon = code === "FIRSTSAREE" ? "JAIISHA10" : code;
+      couponStatus.textContent = `✓ Privilege code ${code} applied!`;
+      couponStatus.className = "bag__coupon-status is-success";
+      render();
+    } else if (!code) {
+      activeCoupon = "";
+      couponStatus.textContent = "";
+      render();
+    } else {
+      couponStatus.textContent = "Invalid code. Try JAIISHA10";
+      couponStatus.className = "bag__coupon-status is-error";
+    }
+  });
+
+  // Clear Bag
+  document.querySelector("[data-clear]")?.addEventListener("click", () => {
+    if (confirm("Are you sure you want to empty your shopping bag?")) {
+      writeCart([]);
+    }
+  });
+
+  // Notes update
+  notesEl?.addEventListener("input", render);
+
+  // Checkout modal
+  checkoutBtn?.addEventListener("click", () => {
+    if (checkoutModal) checkoutModal.showModal();
+  });
+  document.querySelector("[data-checkout-close]")?.addEventListener("click", () => {
+    if (checkoutModal) checkoutModal.close();
+  });
+
+  window.addEventListener("jaiisha:store", render);
+  render();
+</script>

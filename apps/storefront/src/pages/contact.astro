@@ -1,0 +1,397 @@
+---
+import Base from "../layouts/Base.astro";
+import { OCCASIONS, PRICE_BANDS } from "@jaiisha/catalogue";
+import { SITE, whatsappLink } from "../lib/site.ts";
+---
+
+<Base
+  title={`Contact & Saree Advice | ${SITE.name}`}
+  description="Tell us the occasion, colour and budget and we will send three sarees with video. WhatsApp, phone, email or a video call from the shop."
+  canonicalPath="/contact"
+>
+  <header class="chead">
+    <div class="shell">
+      <p class="eyebrow">Talk to us</p>
+      <h1 class="chead__title">A saree is easier to choose with help</h1>
+      <p class="lede">
+        Tell us what the saree is for. We will send photographs and short clips of three pieces
+        from the shelf, in daylight and in lamp light, so you can judge the colour the way you
+        would in a shop.
+      </p>
+    </div>
+  </header>
+
+  <div class="shell contact">
+    <!-- ===== form ===== -->
+    <section class="form-card" aria-labelledby="form-title">
+      <h2 class="form-card__title" id="form-title">Send an enquiry</h2>
+
+      <form class="eform" data-enquiry novalidate>
+        <div class="eform__row">
+          <label class="field">
+            <span class="field__label">Your name</span>
+            <input name="name" type="text" required autocomplete="name" placeholder="Name" />
+          </label>
+          <label class="field">
+            <span class="field__label">WhatsApp number</span>
+            <input name="phone" type="tel" required autocomplete="tel" placeholder="+91 " inputmode="tel" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Email <span class="field__opt">optional</span></span>
+          <input name="email" type="email" autocomplete="email" placeholder="your@email.com" />
+        </label>
+
+        <div class="eform__row">
+          <label class="field">
+            <span class="field__label">Occasion</span>
+            <select name="occasion">
+              <option value="">Choose one</option>
+              {OCCASIONS.map((o) => <option value={o.slug}>{o.name}</option>)}
+              <option value="other">Something else</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Budget</span>
+            <select name="budget">
+              <option value="">Choose one</option>
+              {PRICE_BANDS.map((b) => <option value={b.slug}>{b.label}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">What are you looking for</span>
+          <textarea
+            name="message"
+            rows="4"
+            required
+            placeholder="Colour family, who it is for, when you need it by, any saree code you have seen on the site."
+          ></textarea>
+        </label>
+
+        <p class="eform__privacy">
+          We use your number to answer this enquiry and nothing else. No marketing lists.
+        </p>
+
+        <div class="eform__actions">
+          <button class="btn" type="submit" data-submit>Send enquiry</button>
+          <a class="btn btn--wa" href={whatsappLink("Hello JAIISHA, I would like help choosing a saree.")} target="_blank" rel="noopener noreferrer">
+            Or message on WhatsApp
+          </a>
+        </div>
+
+        <p class="eform__msg" data-msg role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- ===== details ===== -->
+    <aside class="details">
+      <dl class="details__list">
+        <div>
+          <dt>WhatsApp & phone</dt>
+          <dd><a href={whatsappLink("Hello JAIISHA!")}>{SITE.phoneDisplay}</a></dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+        </div>
+        <div>
+          <dt>Instagram</dt>
+          <dd><a href={SITE.instagram} target="_blank" rel="noopener noreferrer">{SITE.instagramHandle}</a></dd>
+        </div>
+        <div>
+          <dt>Hours</dt>
+          <dd>Monday to Saturday, 10am – 8pm IST</dd>
+        </div>
+        <div>
+          <dt>Reply time</dt>
+          <dd>Within a few hours on WhatsApp, same day by email.</dd>
+        </div>
+      </dl>
+
+      <div class="details__call">
+        <h2 class="details__call-title">A video call from the shop</h2>
+        <p>
+          For a bridal or heirloom piece, we will hold up the saree on a call so you can see the
+          zari move. Fifteen minutes, by appointment.
+        </p>
+        <a class="btn btn--ghost" href={whatsappLink("I would like to book a video call to see some sarees.")}>
+          Book a call
+        </a>
+      </div>
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .chead {
+    padding-block: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .chead__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+    margin: 0.4rem 0 0.8rem;
+  }
+
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    padding-bottom: var(--section-y);
+    align-items: start;
+  }
+
+  /* --- form ------------------------------------------------------------- */
+  .form-card {
+    padding: clamp(1.3rem, 3vw, 2.4rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+  }
+
+  .form-card__title {
+    font-size: var(--step-2);
+    font-weight: 300;
+    margin-bottom: 1.3rem;
+  }
+
+  .eform {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .eform__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .field__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .field__opt {
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    color: var(--ink-faint);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+    border-radius: var(--r-sm);
+    font-size: 0.92rem;
+  }
+
+  .field textarea {
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    border-color: var(--gold);
+    outline-offset: 0;
+  }
+
+  .field input[aria-invalid="true"],
+  .field textarea[aria-invalid="true"] {
+    border-color: var(--maroon);
+  }
+
+  .eform__privacy {
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+  }
+
+  .eform__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.3rem;
+  }
+
+  .eform__msg {
+    font-size: 0.84rem;
+    min-height: 1.3em;
+    color: var(--emerald);
+  }
+
+  .eform__msg[data-state="error"] {
+    color: var(--maroon);
+  }
+
+  /* --- details ---------------------------------------------------------- */
+  .details {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .details__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .details__list div {
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .details__list dt {
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .details__list dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.92rem;
+  }
+
+  .details__list a {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .details__list a:hover {
+    color: var(--wine);
+    border-color: var(--wine);
+  }
+
+  .details__call {
+    padding: clamp(1.1rem, 2.5vw, 1.8rem);
+    background: var(--dark);
+    color: var(--on-dark);
+    display: grid;
+    gap: 0.7rem;
+    justify-items: start;
+  }
+
+  .details__call-title {
+    font-size: var(--step-1);
+    font-weight: 400;
+  }
+
+  .details__call p {
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--on-dark-soft);
+  }
+
+  @media (max-width: 900px) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .eform__row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Posts to the Next.js API (/api/enquiry). If the API is not running — which
+   * is the case on a plain static deploy before the backend goes live — the
+   * form falls back to handing the enquiry to WhatsApp, so it is never a dead
+   * end.
+   */
+  const form = document.querySelector<HTMLFormElement>("[data-enquiry]");
+  const msg = document.querySelector<HTMLElement>("[data-msg]");
+  const submit = document.querySelector<HTMLButtonElement>("[data-submit]");
+  const WHATSAPP = "919000000000";
+
+  const setMsg = (text: string, state: "ok" | "error" = "ok") => {
+    if (!msg) return;
+    msg.textContent = text;
+    msg.dataset.state = state === "error" ? "error" : "";
+  };
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+
+    // Validate here rather than relying on novalidate browser bubbles.
+    const required: Array<[string, string]> = [
+      ["name", "your name"],
+      ["phone", "a number we can reach you on"],
+      ["message", "what you are looking for"],
+    ];
+    const missing = required.filter(([k]) => !data[k]?.trim());
+
+    form.querySelectorAll("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
+    if (missing.length) {
+      missing.forEach(([k]) =>
+        form.querySelector(`[name="${k}"]`)?.setAttribute("aria-invalid", "true"),
+      );
+      setMsg(`Please add ${missing.map(([, label]) => label).join(", ")}.`, "error");
+      form.querySelector<HTMLElement>(`[name="${missing[0][0]}"]`)?.focus();
+      return;
+    }
+
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = "Sending…";
+    }
+    setMsg("Sending your enquiry…");
+
+    try {
+      const base = (import.meta.env.PUBLIC_API_URL as string) || "";
+      const res = await fetch(`${base}/api/enquiry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, source: "contact-page" }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setMsg("Sent. We will reply on WhatsApp within a few hours.");
+      form.reset();
+    } catch {
+      // Backend unreachable — hand it to WhatsApp instead of losing it.
+      const text = [
+        "Hello JAIISHA, an enquiry from the website:",
+        "",
+        `Name: ${data.name}`,
+        `Phone: ${data.phone}`,
+        data.email ? `Email: ${data.email}` : "",
+        data.occasion ? `Occasion: ${data.occasion}` : "",
+        data.budget ? `Budget: ${data.budget}` : "",
+        "",
+        data.message,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      setMsg("Opening WhatsApp so this reaches us right away…");
+      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    } finally {
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent = "Send enquiry";
+      }
+    }
+  });
+</script>

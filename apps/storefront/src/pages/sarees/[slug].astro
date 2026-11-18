@@ -1,0 +1,1895 @@
+---
+import Base from "../../layouts/Base.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import Stars from "../../components/Stars.astro";
+import {
+  PRODUCTS,
+  ZARI_LABELS,
+  discountPercent,
+  fabricBySlug,
+  formatINR,
+  occasionBySlug,
+  relatedProducts,
+  reviewsForProduct,
+  type Product,
+  type ProductVariant,
+} from "@jaiisha/catalogue";
+import { SITE, PHASE2_NOTICE, whatsappLink } from "../../lib/site.ts";
+
+export function getStaticPaths() {
+  return PRODUCTS.map((product) => ({ params: { slug: product.slug }, props: { product } }));
+}
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+
+const variants = product.variants;
+const initial: ProductVariant = variants.find((v) => v.availability === "in_stock") ?? variants[0];
+const fabric = fabricBySlug(product.fabric);
+const reviews = reviewsForProduct(product.id);
+const related = relatedProducts(product, 4);
+const off = discountPercent(initial);
+
+const weaveLabel: Record<string, string> = {
+  handloom: "Handloom, woven on a pit loom",
+  "semi-handloom": "Semi-handloom",
+  powerloom: "Powerloom",
+};
+
+const availabilityLabel = (v: ProductVariant) =>
+  v.availability === "in_stock"
+    ? v.stock !== null && v.stock <= 3
+      ? `In stock — only ${v.stock} left`
+      : "In stock, ships in 24 hours"
+    : v.availability === "made_to_order"
+      ? `Made to order — woven in ${v.leadTimeDays ?? 21} days`
+      : "Sold out";
+
+/** The spec sheet from the brief, in the order a buyer asks about it. */
+const specs = [
+  { label: "Product code", value: initial.sku, key: "sku" },
+  { label: "Fabric", value: fabric?.name ?? product.fabric },
+  { label: "Weaving", value: weaveLabel[product.weave] ?? product.weave },
+  { label: "Technique", value: product.craft },
+  { label: "Zari", value: ZARI_LABELS[product.zari] ?? product.zari },
+  { label: "Colour", value: initial.colour.name + (initial.secondaryColour ? ` with ${initial.secondaryColour.name}` : ""), key: "colour" },
+  { label: "Saree length", value: `${product.sareeLengthMetres} metres` },
+  {
+    label: "Blouse piece",
+    value: product.blousePieceMetres ? `Included, ${product.blousePieceMetres} m unstitched` : "Not included",
+  },
+  { label: "Weight", value: product.weightGrams ? `${product.weightGrams} g` : "—" },
+  { label: "Woven in", value: product.origin },
+  { label: "Occasion", value: product.occasions.map((o) => occasionBySlug(o)?.name ?? o).join(", ") },
+  { label: "Availability", value: availabilityLabel(initial), key: "availability" },
+  { label: "Care", value: product.care[0] },
+];
+
+const enquiry = (v: ProductVariant) =>
+  whatsappLink(
+    `Hello JAIISHA, I would like to enquire about:\n\n${product.name}\nColour: ${v.colour.name}\nCode: ${v.sku}\nPrice: ${formatINR(v.price)}\n\n${SITE.url}/sarees/${product.slug}`,
+  );
+
+/* --- structured data ---------------------------------------------------- */
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.seo.description,
+    sku: initial.sku,
+    brand: { "@type": "Brand", name: SITE.name },
+    material: fabric?.name ?? product.fabric,
+    color: initial.colour.name,
+    image: variants.flatMap((v) => v.images.map((i) => new URL(i.src, SITE.url).href)).slice(0, 6),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: product.rating.value,
+      reviewCount: product.rating.count,
+    },
+    offers: variants.map((v) => ({
+      "@type": "Offer",
+      sku: v.sku,
+      price: (v.price.paise / 100).toFixed(2),
+      priceCurrency: v.price.currency,
+      availability:
+        v.availability === "in_stock"
+          ? "https://schema.org/InStock"
+          : v.availability === "made_to_order"
+            ? "https://schema.org/PreOrder"
+            : "https://schema.org/OutOfStock",
+      url: `${SITE.url}/sarees/${product.slug}`,
+    })),
+    review: reviews.slice(0, 3).map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: r.author },
+      reviewRating: { "@type": "Rating", ratingValue: r.rating },
+      name: r.title,
+      reviewBody: r.body,
+      datePublished: r.createdAt,
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE.url },
+      { "@type": "ListItem", position: 2, name: "Sarees", item: `${SITE.url}/sarees` },
+      { "@type": "ListItem", position: 3, name: product.name },
+    ],
+  },
+];
+---
+
+<Base
+  title={product.seo.title}
+  description={product.seo.description}
+  image={initial.images[0].src}
+  schema={schema}
+  canonicalPath={`/sarees/${product.slug}`}
+>
+  <nav class="crumbs shell" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/sarees">Sarees</a></li>
+      <li aria-current="page">{product.name}</li>
+    </ol>
+  </nav>
+
+  <article
+    class="pdp shell"
+    data-pdp
+    data-gst={String(product.tax.gstRate)}
+    data-variants={JSON.stringify(
+      variants.map((v) => ({
+        id: v.id,
+        sku: v.sku,
+        colour: v.colour.name,
+        colourSlug: v.colour.slug,
+        secondary: v.secondaryColour?.name ?? null,
+        price: formatINR(v.price),
+        paise: v.price.paise,
+        mrp: formatINR(v.mrp),
+        off: discountPercent(v),
+        availability: availabilityLabel(v),
+        state: v.availability,
+        images: v.images,
+      })),
+    )}
+  >
+    <!-- ===================== gallery ===================== -->
+    <div class="gal">
+      <ul class="gal__thumbs" data-thumbs aria-label="Product images">
+        {
+          initial.images.map((im, i) => (
+            <li>
+              <button
+                class="gal__thumb"
+                type="button"
+                aria-label={`View image ${i + 1}: ${im.kind}`}
+                aria-pressed={i === 0 ? "true" : "false"}
+                data-thumb={i}
+              >
+                <img src={im.src} alt="" width="300" height="400" loading="lazy" decoding="async" />
+                <span class="gal__thumb-kind">{im.kind}</span>
+              </button>
+            </li>
+          ))
+        }
+        {
+          product.video && (
+            <li>
+              <button class="gal__thumb gal__thumb--video" type="button" aria-label="Play the saree video" data-open-video>
+                <img src={initial.images[0].src} alt="" width="300" height="400" loading="lazy" decoding="async" />
+                <span class="gal__thumb-play" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M9 7.5l8 4.5-8 4.5z" fill="currentColor" /></svg>
+                </span>
+                <span class="gal__thumb-kind">video</span>
+              </button>
+            </li>
+          )
+        }
+      </ul>
+
+      <div class="gal__stage">
+        <!-- Hover to magnify, click to open full screen. -->
+        <button class="gal__main" type="button" data-zoom-open aria-label="Open full-screen view">
+          <img
+            src={initial.images[0].src}
+            alt={initial.images[0].alt}
+            width={initial.images[0].width}
+            height={initial.images[0].height}
+            fetchpriority="high"
+            decoding="async"
+            data-main-img
+          />
+          <span class="gal__hint">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M16 16l4.5 4.5M11 8.5v5M8.5 11h5" stroke="currentColor" stroke-width="1.5" fill="none" /></svg>
+            Click to zoom
+          </span>
+        </button>
+
+        {
+          product.badges.includes("handloom") && (
+            <span class="gal__flag">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c3-6 6-6 9-3s6 3 9-3" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+              Handloom · Varanasi
+            </span>
+          )
+        }
+      </div>
+    </div>
+
+    <!-- ===================== buy panel ===================== -->
+    <div class="buy">
+      <p class="buy__fabric">{fabric?.name ?? product.fabric} · {product.craft}</p>
+      <h1 class="buy__title">{product.name}</h1>
+      <p class="buy__tagline">{product.tagline}</p>
+
+      <div class="buy__rating">
+        <Stars value={product.rating.value} count={product.rating.count} />
+        <a class="buy__rating-link" href="#reviews">Read reviews</a>
+      </div>
+
+      <div class="buy__price price">
+        <span class="price__now" data-price>{formatINR(initial.price)}</span>
+        <span class="price__was" data-mrp hidden={off === 0}>{formatINR(initial.mrp)}</span>
+        <span class="price__off" data-off hidden={off === 0}>{off}% off</span>
+      </div>
+      <p class="buy__tax">Inclusive of all taxes · GST {product.tax.gstRate}% · HSN {product.tax.hsn}</p>
+
+      <!-- Colour: built from the variants that exist, so a colour can never be
+           chosen that this design is not woven in. -->
+      <div class="buy__field">
+        <div class="buy__field-head">
+          <span class="buy__label">Colour</span>
+          <span class="buy__value" data-colour-name>
+            {initial.colour.name}{initial.secondaryColour ? ` with ${initial.secondaryColour.name}` : ""}
+          </span>
+        </div>
+        <ul class="buy__swatches">
+          {
+            variants.map((v, i) => (
+              <li>
+                <button
+                  class="buy__swatch"
+                  type="button"
+                  style={`--c:${v.colour.hex};--c2:${v.colour.shadeHex ?? v.colour.hex}`}
+                  aria-label={`${v.colour.name} — ${formatINR(v.price)}`}
+                  aria-pressed={v.id === initial.id ? "true" : "false"}
+                  data-variant={v.id}
+                  data-index={i}
+                >
+                  <span class="buy__swatch-disc"></span>
+                  {v.availability === "sold_out" && <span class="buy__swatch-out" aria-hidden="true"></span>}
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <p class="buy__stock" data-availability data-state={initial.availability}>
+        <span class="buy__dot" aria-hidden="true"></span>
+        <span data-availability-text>{availabilityLabel(initial)}</span>
+      </p>
+
+      <p class="buy__sku">Code <strong data-sku>{initial.sku}</strong></p>
+
+      <!-- Quantity selection -->
+      <div class="buy__field buy__field--qty">
+        <span class="buy__label">Quantity</span>
+        <div class="buy__qty-box">
+          <button class="buy__qty-btn" type="button" data-pdp-minus aria-label="Decrease quantity">−</button>
+          <span class="buy__qty-val" data-pdp-qty>1</span>
+          <button class="buy__qty-btn" type="button" data-pdp-plus aria-label="Increase quantity">+</button>
+        </div>
+      </div>
+
+      <div class="buy__actions">
+        <button class="btn btn--gold buy__bag" type="button" data-add-bag>
+          <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 1.15rem; height: 1.15rem;">
+            <path d="M6 8h12l-1 11.5H7L6 8Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="M9.5 8V6.4a2.5 2.5 0 0 1 5 0V8" fill="none" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+          <span data-bag-label>Add to bag</span>
+        </button>
+        <a class="btn btn--wa buy__wa" href={enquiry(initial)} target="_blank" rel="noopener noreferrer" data-wa>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.7a7.9 7.9 0 0 1-11.6 7L4 20l1.4-4.2A7.9 7.9 0 1 1 20 11.7Z" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+          Order on WhatsApp
+        </a>
+        <button class="buy__wish" type="button" aria-pressed="false" data-wish-pdp={product.slug} aria-label="Save to wishlist">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-9.6A4.4 4.4 0 0 1 12 7.7a4.4 4.4 0 0 1 7.5 2.7c0 5-7.5 9.6-7.5 9.6Z" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+        </button>
+      </div>
+
+      <p class="buy__phase2">{PHASE2_NOTICE}</p>
+
+      <ul class="buy__assure">
+        <li>Free insured shipping above ₹3,000</li>
+        <li>Weaver's certificate in the box</li>
+        <li>7-day return on unworn pieces</li>
+      </ul>
+
+      <!-- Story -->
+      <section class="buy__story" aria-labelledby="story-title">
+        <h2 class="buy__story-title" id="story-title">About this saree</h2>
+        <p>{product.story}</p>
+      </section>
+
+      <!-- Spec sheet -->
+      <section class="spec" aria-labelledby="spec-title">
+        <h2 class="spec__title" id="spec-title">Details</h2>
+        <dl class="spec__list">
+          {
+            specs.map((s) => (
+              <div class="spec__row">
+                <dt>{s.label}</dt>
+                <dd data-spec={s.key ?? undefined}>{s.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      <!-- Care -->
+      <section class="care" aria-labelledby="care-title">
+        <h2 class="care__title" id="care-title">Caring for it</h2>
+        <ul class="care__list">
+          {product.care.map((c) => <li>{c}</li>)}
+        </ul>
+      </section>
+
+      <div class="buy__share">
+        <span class="buy__label">Share</span>
+        <button class="buy__share-btn" type="button" data-share>Copy link</button>
+        <a class="buy__share-btn" href={`https://wa.me/?text=${encodeURIComponent(`${product.name} — ${SITE.url}/sarees/${product.slug}`)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <span class="buy__share-msg" data-share-msg role="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ===================== reviews ===================== -->
+  <section class="pdp-rev section" id="reviews" aria-labelledby="pdp-rev-title">
+    <div class="shell">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Customer reviews</p>
+          <h2 class="pdp-rev__title" id="pdp-rev-title">
+            {product.rating.value.toFixed(1)} out of 5
+            <span class="pdp-rev__count">from {product.rating.count} reviews</span>
+          </h2>
+        </div>
+        <button class="btn btn--gold" type="button" data-open-rev>
+          Write a review
+        </button>
+      </div>
+
+      <div class="rev-alert" data-rev-alert hidden>
+        ✓ Thank you! Your review has been published below.
+      </div>
+
+      <ul class="pdp-rev__list" data-reviews-container>
+        {reviews.map((r) => (
+              <li class="pdp-rev__item">
+                <div class="pdp-rev__meta">
+                  <Stars value={r.rating} compact />
+                  <p class="pdp-rev__author">{r.author} <span>{r.city}</span></p>
+                  {r.verified && <span class="pdp-rev__verified">Verified purchase</span>}
+                </div>
+                <div>
+                  <h3 class="pdp-rev__item-title">{r.title}</h3>
+                  <p class="pdp-rev__body">{r.body}</p>
+                </div>
+              </li>
+            ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== related ===================== -->
+  <section class="rel section section--sunk" aria-labelledby="rel-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow">You may also like</p>
+        <h2 class="rel__title" id="rel-title">Woven for the same occasions</h2>
+      </div>
+      <div class="rel__grid">
+        {related.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== zoom lightbox ===================== -->
+  <div class="zoom" data-zoom hidden style="display: none;">
+    <button class="zoom__close" type="button" aria-label="Close" data-zoom-close>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+    </button>
+    <button class="zoom__nav zoom__nav--prev" type="button" aria-label="Previous image" data-zoom-prev>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </button>
+    <figure class="zoom__figure">
+      <img src={initial.images[0].src} alt="" data-zoom-img />
+      <figcaption class="zoom__caption" data-zoom-caption></figcaption>
+    </figure>
+    <button class="zoom__nav zoom__nav--next" type="button" aria-label="Next image" data-zoom-next>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </button>
+  </div>
+
+  <!-- ===================== video modal ===================== -->
+  {
+    product.video && (
+      <div class="vmodal" data-vmodal hidden style="display: none;">
+        <button class="zoom__close" type="button" aria-label="Close video" data-close-video>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+        </button>
+        <div class="vmodal__frame" data-aspect={product.video.aspect}>
+          <video controls playsinline preload="none" data-pdp-video>
+            <source src={product.video.src} type="video/mp4" />
+          </video>
+        </div>
+      </div>
+    )
+  }
+
+  <!-- ===================== review modal ===================== -->
+  <div class="rev-modal" data-rev-modal hidden aria-hidden="true" style="display: none;">
+    <div class="rev-modal__scrim" data-close-rev></div>
+    <div class="rev-modal__panel" role="dialog" aria-modal="true" aria-label="Write a review">
+      <div class="rev-modal__head">
+        <div>
+          <p class="eyebrow">Customer feedback</p>
+          <h3 class="rev-modal__title">Review {product.name}</h3>
+        </div>
+        <button class="icon-btn rev-modal__close" type="button" aria-label="Close review modal" data-close-rev>
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        </button>
+      </div>
+
+      <form class="rev-modal__form" data-rev-form>
+        <div class="rev-field">
+          <label class="rev-label">Your Rating</label>
+          <div class="rev-stars" data-star-picker>
+            <button type="button" class="rev-star is-active" data-star="1" aria-label="1 star">★</button>
+            <button type="button" class="rev-star is-active" data-star="2" aria-label="2 stars">★</button>
+            <button type="button" class="rev-star is-active" data-star="3" aria-label="3 stars">★</button>
+            <button type="button" class="rev-star is-active" data-star="4" aria-label="4 stars">★</button>
+            <button type="button" class="rev-star is-active" data-star="5" aria-label="5 stars">★</button>
+          </div>
+          <input type="hidden" name="rating" value="5" data-rating-input />
+        </div>
+
+        <div class="rev-grid">
+          <div class="rev-field">
+            <label class="rev-label" for="rev-author">Full Name</label>
+            <input id="rev-author" type="text" name="author" class="rev-input" required placeholder="e.g. Radhika Sharma" />
+          </div>
+          <div class="rev-field">
+            <label class="rev-label" for="rev-city">City</label>
+            <input id="rev-city" type="text" name="city" class="rev-input" required placeholder="e.g. Varanasi, Delhi" />
+          </div>
+        </div>
+
+        <div class="rev-field">
+          <label class="rev-label" for="rev-title">Review Headline</label>
+          <input id="rev-title" type="text" name="title" class="rev-input" required placeholder="e.g. Exquisite silver zari weave, felt like royalty" />
+        </div>
+
+        <div class="rev-field">
+          <label class="rev-label" for="rev-body">Your Review</label>
+          <textarea id="rev-body" name="body" class="rev-textarea" rows="4" required placeholder="Share how the silk draped, the weight, shine of zari under lights, and occasion compliments..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn--gold rev-submit">Submit Verified Review</button>
+      </form>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .crumbs {
+    padding-top: 1.5rem;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+  }
+  .crumbs ol {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .crumbs li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: var(--line-strong);
+  }
+  .crumbs a:hover {
+    color: var(--wine);
+  }
+  .crumbs li[aria-current] {
+    color: var(--ink-soft);
+  }
+
+  /* ===================== layout ===================== */
+  .pdp {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    padding-block: clamp(1.2rem, 3vw, 2.5rem) var(--section-y);
+    align-items: start;
+  }
+
+  /* ===================== gallery ===================== */
+  .gal {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.8rem;
+    position: sticky;
+    top: 6rem;
+  }
+
+  .gal__thumbs {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+  }
+
+  .gal__thumb {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--bg-sunk);
+    border: 1px solid transparent;
+    transition: border-color 0.3s var(--ease), opacity 0.3s var(--ease);
+    opacity: 0.72;
+  }
+
+  .gal__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gal__thumb:hover,
+  .gal__thumb[aria-pressed="true"] {
+    opacity: 1;
+    border-color: var(--gold);
+  }
+
+  .gal__thumb-kind {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 0.15rem;
+    background: rgba(28, 15, 21, 0.72);
+    color: var(--gold-pale);
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .gal__thumb-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(28, 15, 21, 0.4);
+    color: var(--ivory);
+  }
+
+  .gal__thumb-play svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .gal__stage {
+    position: relative;
+  }
+
+  .gal__main {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--bg-sunk);
+    cursor: zoom-in;
+  }
+
+  .gal__main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 0.6s var(--ease-out-soft);
+  }
+
+  /* Pointer-tracked magnification, set by the script. */
+  .gal__main.is-magnified img {
+    scale: 1.9;
+  }
+
+  .gal__hint {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: var(--r-pill);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    opacity: 0;
+    transition: opacity 0.35s var(--ease);
+    pointer-events: none;
+  }
+
+  .gal__main:hover .gal__hint {
+    opacity: 1;
+  }
+
+  .gal__hint svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .gal__flag {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    background: var(--wine);
+    color: var(--ivory);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .gal__flag svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--gold-light);
+  }
+
+  /* ===================== buy panel ===================== */
+  .buy {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .buy__fabric {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .buy__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    line-height: 1.12;
+  }
+
+  .buy__tagline {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-family: var(--font-italic);
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  .buy__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 0.3rem;
+  }
+
+  .buy__rating-link {
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    border-bottom: 1px solid currentColor;
+  }
+
+  .buy__rating-link:hover {
+    color: var(--wine);
+  }
+
+  .buy__price {
+    margin-top: 0.9rem;
+    align-items: baseline;
+  }
+
+  .buy__price .price__now {
+    font-size: var(--step-2);
+    font-weight: 400;
+    font-family: var(--font-display);
+  }
+
+  .buy__tax {
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+  }
+
+  /* --- fields ---------------------------------------------------------- */
+  .buy__field {
+    margin-top: 1.4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .buy__field-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .buy__label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .buy__value {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+
+  .buy__swatches {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .buy__swatch {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    transition: border-color 0.3s var(--ease), scale 0.3s var(--ease);
+  }
+
+  .buy__swatch-disc {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, var(--c), var(--c2) 80%);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .buy__swatch:hover {
+    scale: 1.06;
+  }
+
+  .buy__swatch[aria-pressed="true"] {
+    border-color: var(--gold);
+  }
+
+  .buy__swatch-out {
+    position: absolute;
+    inset: 0.3rem;
+    background: linear-gradient(
+      to bottom right,
+      transparent 46%,
+      rgba(255, 255, 255, 0.9) 48%,
+      rgba(255, 255, 255, 0.9) 52%,
+      transparent 54%
+    );
+    border-radius: 50%;
+  }
+
+  /* --- stock ----------------------------------------------------------- */
+  .buy__stock {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.1rem;
+    font-size: 0.84rem;
+    color: var(--emerald);
+  }
+
+  .buy__stock[data-state="made_to_order"] {
+    color: var(--gold);
+  }
+
+  .buy__stock[data-state="sold_out"] {
+    color: var(--ink-faint);
+  }
+
+  .buy__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 22%, transparent);
+  }
+
+  .buy__sku {
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+  }
+
+  .buy__sku strong {
+    font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: 0.06em;
+  }
+
+  /* --- quantity box ---------------------------------------------------- */
+  .buy__field--qty {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 0.8rem;
+  }
+
+  .buy__qty-box {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+  }
+
+  .buy__qty-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .buy__qty-btn:hover {
+    background: var(--ivory);
+    color: var(--wine);
+  }
+
+  .buy__qty-val {
+    min-width: 2rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .buy__bag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+
+  /* --- reviews modal --------------------------------------------------- */
+  .rev-alert {
+    padding: 0.8rem 1.2rem;
+    background: rgba(31, 170, 89, 0.12);
+    border: 1px solid rgba(31, 170, 89, 0.3);
+    color: #177a40;
+    border-radius: var(--r-sm);
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .rev-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    padding: 1.2rem;
+  }
+
+  .rev-modal[hidden] {
+    display: none;
+  }
+
+  .rev-modal__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(18, 9, 13, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .rev-modal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 34rem;
+    background: var(--surface);
+    border-radius: var(--r-sm);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+    padding: clamp(1.2rem, 3vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .rev-modal__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.8rem;
+  }
+
+  .rev-modal__title {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    margin-top: 0.2rem;
+  }
+
+  .rev-modal__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .rev-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .rev-label {
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .rev-stars {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .rev-star {
+    font-size: 1.5rem;
+    color: var(--line-strong);
+    cursor: pointer;
+    transition: color 0.2s, transform 0.15s;
+    line-height: 1;
+  }
+
+  .rev-star.is-active {
+    color: var(--gold);
+  }
+
+  .rev-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .rev-input,
+  .rev-textarea {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    background: var(--bg);
+    font-size: 0.88rem;
+  }
+
+  .rev-input:focus,
+  .rev-textarea:focus {
+    border-color: var(--gold);
+    background: var(--surface);
+    outline: none;
+  }
+
+  .rev-submit {
+    margin-top: 0.4rem;
+    padding-block: 0.8rem;
+  }
+
+  /* --- actions ---------------------------------------------------------- */
+  .buy__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .buy__wa svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .buy__wish {
+    display: grid;
+    place-items: center;
+    width: 3.1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    color: var(--ink-soft);
+    transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+
+  .buy__wish svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .buy__wish[aria-pressed="true"] {
+    color: var(--maroon);
+    border-color: var(--maroon);
+  }
+
+  .buy__wish[aria-pressed="true"] svg path {
+    fill: currentColor;
+  }
+
+  .buy__phase2 {
+    margin-top: 0.7rem;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    font-family: var(--font-italic);
+    font-style: italic;
+  }
+
+  .buy__assure {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    padding: 1rem 1.1rem;
+    background: var(--bg-sunk);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  .buy__assure li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem;
+  }
+
+  .buy__assure li::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    rotate: 45deg;
+    background: var(--gold);
+    margin-top: 0.55rem;
+  }
+
+  /* --- story / spec / care ---------------------------------------------- */
+  .buy__story,
+  .spec,
+  .care {
+    margin-top: 1.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .buy__story-title,
+  .spec__title,
+  .care__title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.7rem;
+  }
+
+  .buy__story p {
+    color: var(--ink-soft);
+    font-weight: 300;
+    line-height: 1.75;
+  }
+
+  .spec__list {
+    display: grid;
+    margin: 0;
+  }
+
+  .spec__row {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.55rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.86rem;
+  }
+
+  .spec__row dt {
+    color: var(--ink-faint);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 0.1rem;
+  }
+
+  .spec__row dd {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .care__list {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+
+  .care__list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.55rem;
+  }
+
+  .care__list li::before {
+    content: "·";
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* --- share ----------------------------------------------------------- */
+  .buy__share {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .buy__share-btn {
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 1px;
+  }
+
+  .buy__share-btn:hover {
+    color: var(--wine);
+    border-color: var(--wine);
+  }
+
+  .buy__share-msg {
+    font-size: 0.74rem;
+    color: var(--emerald);
+  }
+
+  /* ===================== reviews ===================== */
+  .pdp-rev__title {
+    font-size: var(--step-2);
+    font-weight: 300;
+    margin-top: 0.4rem;
+  }
+
+  .pdp-rev__count {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    margin-left: 0.5rem;
+  }
+
+  .pdp-rev__list {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .pdp-rev__item {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2.5rem);
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pdp-rev__meta {
+    display: grid;
+    gap: 0.3rem;
+    align-content: start;
+  }
+
+  .pdp-rev__author {
+    font-size: 0.86rem;
+    font-weight: 500;
+  }
+
+  .pdp-rev__author span {
+    display: block;
+    font-weight: 400;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+  }
+
+  .pdp-rev__verified {
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--emerald);
+  }
+
+  .pdp-rev__item-title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.35rem;
+  }
+
+  .pdp-rev__body {
+    color: var(--ink-soft);
+    font-weight: 300;
+    max-width: 68ch;
+  }
+
+  .pdp-rev__none {
+    color: var(--ink-soft);
+  }
+
+  /* ===================== related ===================== */
+  .rel__title {
+    font-size: var(--step-2);
+    font-weight: 300;
+  }
+
+  .rel__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.8rem) clamp(0.8rem, 1.6vw, 1.4rem);
+  }
+
+  /* ===================== zoom ===================== */
+  .zoom,
+  .vmodal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: clamp(1rem, 4vw, 3rem);
+    background: rgba(14, 6, 10, 0.94);
+    backdrop-filter: blur(6px);
+  }
+
+  .zoom[hidden],
+  .vmodal[hidden] {
+    display: none !important;
+  }
+
+  .vmodal {
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+  }
+
+  .zoom__figure {
+    margin: 0;
+    display: grid;
+    gap: 0.8rem;
+    justify-items: center;
+    max-height: 100%;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .zoom__figure img {
+    max-height: 82svh;
+    width: auto;
+    object-fit: contain;
+    pointer-events: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    border-radius: var(--r-sm);
+  }
+
+  .zoom__caption {
+    font-size: 0.78rem;
+    color: rgba(246, 239, 228, 0.7);
+    text-align: center;
+  }
+
+  .zoom__close {
+    position: absolute;
+    top: clamp(1rem, 3vw, 2rem);
+    right: clamp(1rem, 3vw, 2rem);
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border: 1px solid rgba(246, 239, 228, 0.4);
+    border-radius: 50%;
+    color: var(--ivory);
+    background: rgba(28, 15, 21, 0.75);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+
+  .zoom__close:hover {
+    background: var(--wine);
+    border-color: var(--gold-light);
+    transform: scale(1.08);
+  }
+
+  .zoom__close svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    pointer-events: none;
+  }
+
+  .zoom__nav {
+    position: relative;
+    z-index: 25;
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border: 1px solid rgba(246, 239, 228, 0.35);
+    border-radius: 50%;
+    color: var(--ivory);
+    background: rgba(28, 15, 21, 0.6);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.3s var(--ease), transform 0.2s var(--ease);
+  }
+
+  .zoom__nav:hover {
+    background: rgba(181, 138, 67, 0.35);
+    transform: scale(1.06);
+  }
+
+  .zoom__nav svg {
+    width: 1.3rem;
+    height: 1.3rem;
+    pointer-events: none;
+  }
+
+  .vmodal__frame {
+    width: min(68rem, 100%);
+  }
+
+  .vmodal__frame[data-aspect="9x16"] {
+    width: min(26rem, 100%);
+  }
+
+  .vmodal__frame video {
+    width: 100%;
+    max-height: 84svh;
+    background: #000;
+  }
+
+  /* ===================== responsive ===================== */
+  @media (max-width: 1000px) {
+    .pdp {
+      grid-template-columns: 1fr;
+    }
+    .gal {
+      position: static;
+    }
+    .rel__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .gal {
+      grid-template-columns: 1fr;
+    }
+    /* Thumbnails become a swipeable strip under the main image. */
+    .gal__thumbs {
+      grid-row: 2;
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .gal__thumbs::-webkit-scrollbar {
+      display: none;
+    }
+    .gal__thumbs > li {
+      flex: 0 0 4.5rem;
+    }
+    .buy__actions {
+      grid-template-columns: 1fr auto;
+    }
+    .buy__wa {
+      grid-column: 1 / -1;
+    }
+    .spec__row {
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      gap: 0.6rem;
+    }
+    .pdp-rev__item {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * PDP behaviour: variant switching, gallery, magnifier, lightbox, video,
+   * wishlist, bag and share.
+   */
+  interface VImage {
+    src: string;
+    alt: string;
+    kind: string;
+  }
+  interface VData {
+    id: string;
+    sku: string;
+    colour: string;
+    colourSlug: string;
+    secondary: string | null;
+    price: string;
+    /** Integer paise — the cart totals from this, never from the formatted string. */
+    paise: number;
+    mrp: string;
+    off: number;
+    availability: string;
+    state: string;
+    images: VImage[];
+  }
+
+  const root = document.querySelector<HTMLElement>("[data-pdp]");
+  if (root) {
+    const variants: VData[] = JSON.parse(root.dataset.variants || "[]");
+    let current = 0;
+    let imageIndex = 0;
+
+    const mainImg = root.querySelector<HTMLImageElement>("[data-main-img]");
+    const thumbList = root.querySelector<HTMLElement>("[data-thumbs]");
+    const priceEl = root.querySelector<HTMLElement>("[data-price]");
+    const mrpEl = root.querySelector<HTMLElement>("[data-mrp]");
+    const offEl = root.querySelector<HTMLElement>("[data-off]");
+    const skuEl = root.querySelector<HTMLElement>("[data-sku]");
+    const colourName = root.querySelector<HTMLElement>("[data-colour-name]");
+    const availBox = root.querySelector<HTMLElement>("[data-availability]");
+    const availText = root.querySelector<HTMLElement>("[data-availability-text]");
+    const waLink = root.querySelector<HTMLAnchorElement>("[data-wa]");
+    const specSku = root.querySelector<HTMLElement>('[data-spec="sku"]');
+    const specColour = root.querySelector<HTMLElement>('[data-spec="colour"]');
+    const specAvail = root.querySelector<HTMLElement>('[data-spec="availability"]');
+
+    /** Rebuild the thumbnail strip for the selected colourway. */
+    const paintThumbs = (v: VData) => {
+      if (!thumbList) return;
+      const videoThumb = thumbList.querySelector(".gal__thumb--video")?.closest("li");
+      thumbList.querySelectorAll("li").forEach((li) => {
+        if (li !== videoThumb) li.remove();
+      });
+
+      v.images.forEach((im, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <button class="gal__thumb" type="button" data-thumb="${i}"
+                  aria-label="View image ${i + 1}: ${im.kind}"
+                  aria-pressed="${i === imageIndex}">
+            <img src="${im.src}" alt="" width="300" height="400" loading="lazy" decoding="async"/>
+            <span class="gal__thumb-kind">${im.kind}</span>
+          </button>`;
+        thumbList.insertBefore(li, videoThumb ?? null);
+      });
+
+      bindThumbs();
+    };
+
+    const showImage = (i: number) => {
+      const v = variants[current];
+      if (!v?.images[i] || !mainImg) return;
+      imageIndex = i;
+      mainImg.src = v.images[i].src;
+      mainImg.alt = v.images[i].alt;
+      root
+        .querySelectorAll<HTMLButtonElement>("[data-thumb]")
+        .forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.thumb) === i)));
+    };
+
+    const bindThumbs = () => {
+      root.querySelectorAll<HTMLButtonElement>("[data-thumb]").forEach((btn) => {
+        btn.addEventListener("click", () => showImage(Number(btn.dataset.thumb)));
+      });
+    };
+
+    const selectVariant = (i: number) => {
+      const v = variants[i];
+      if (!v) return;
+      current = i;
+      imageIndex = 0;
+
+      if (priceEl) priceEl.textContent = v.price;
+      if (mrpEl) {
+        mrpEl.textContent = v.mrp;
+        mrpEl.hidden = v.off === 0;
+      }
+      if (offEl) {
+        offEl.textContent = `${v.off}% off`;
+        offEl.hidden = v.off === 0;
+      }
+      if (skuEl) skuEl.textContent = v.sku;
+      if (specSku) specSku.textContent = v.sku;
+
+      const colourText = v.secondary ? `${v.colour} with ${v.secondary}` : v.colour;
+      if (colourName) colourName.textContent = colourText;
+      if (specColour) specColour.textContent = colourText;
+
+      if (availText) availText.textContent = v.availability;
+      if (specAvail) specAvail.textContent = v.availability;
+      if (availBox) availBox.dataset.state = v.state;
+
+      if (waLink) {
+        const msg = `Hello JAIISHA, I would like to enquire about:\n\n${document.title.split(" | ")[0]}\nColour: ${v.colour}\nCode: ${v.sku}\nPrice: ${v.price}\n\n${location.href}`;
+        waLink.href = waLink.href.split("?text=")[0] + "?text=" + encodeURIComponent(msg);
+      }
+
+      root
+        .querySelectorAll<HTMLButtonElement>("[data-variant]")
+        .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.variant === v.id)));
+
+      paintThumbs(v);
+      showImage(0);
+
+      // Reflect the choice in the URL so a colourway can be linked to.
+      const url = new URL(location.href);
+      url.searchParams.set("colour", v.colourSlug);
+      history.replaceState({}, "", url);
+    };
+
+    root.querySelectorAll<HTMLButtonElement>("[data-variant]").forEach((btn) => {
+      btn.addEventListener("click", () => selectVariant(Number(btn.dataset.index)));
+    });
+
+    bindThumbs();
+
+    // Deep link: /sarees/x?colour=green opens on that colourway.
+    const wanted = new URLSearchParams(location.search).get("colour");
+    const wantedIndex = variants.findIndex((v) => v.colourSlug === wanted);
+    if (wantedIndex > 0) selectVariant(wantedIndex);
+
+    /* --- magnifier ---------------------------------------------------- */
+    const stage = root.querySelector<HTMLElement>("[data-zoom-open]");
+    if (stage && mainImg && window.matchMedia("(hover: hover)").matches) {
+      stage.addEventListener("mousemove", (e) => {
+        const r = stage.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * 100;
+        const y = ((e.clientY - r.top) / r.height) * 100;
+        mainImg.style.transformOrigin = `${x}% ${y}%`;
+        stage.classList.add("is-magnified");
+      });
+      stage.addEventListener("mouseleave", () => {
+        stage.classList.remove("is-magnified");
+        mainImg.style.transformOrigin = "center";
+      });
+    }
+
+    /* --- lightbox ------------------------------------------------------ */
+    const zoom = document.querySelector<HTMLElement>("[data-zoom]");
+    const zoomImg = document.querySelector<HTMLImageElement>("[data-zoom-img]");
+    const zoomCaption = document.querySelector<HTMLElement>("[data-zoom-caption]");
+
+    // Ensure hidden on boot
+    if (zoom) {
+      zoom.hidden = true;
+      zoom.style.display = "none";
+    }
+
+    const paintZoom = () => {
+      const im = variants[current]?.images[imageIndex] ?? variants[current]?.images[0];
+      if (!im) return;
+      if (zoomImg) {
+        zoomImg.src = im.src;
+        zoomImg.alt = im.alt;
+      }
+      if (zoomCaption) {
+        zoomCaption.textContent = `${im.alt} · ${imageIndex + 1} of ${variants[current].images.length}`;
+      }
+    };
+
+    const openZoom = () => {
+      if (!zoom) return;
+      paintZoom();
+      zoom.hidden = false;
+      zoom.style.display = "grid";
+      document.body.classList.add("no-scroll");
+    };
+    const closeZoom = () => {
+      if (!zoom) return;
+      zoom.hidden = true;
+      zoom.style.display = "none";
+      document.body.classList.remove("no-scroll");
+    };
+    const step = (dir: number) => {
+      const n = variants[current].images.length;
+      showImage((imageIndex + dir + n) % n);
+      paintZoom();
+    };
+
+    stage?.addEventListener("click", (e) => {
+      e.preventDefault();
+      openZoom();
+    });
+
+    const zoomCloseBtn = document.querySelector<HTMLElement>("[data-zoom-close]");
+    zoomCloseBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeZoom();
+    });
+
+    document.querySelector("[data-zoom-prev]")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      step(-1);
+    });
+    document.querySelector("[data-zoom-next]")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      step(1);
+    });
+
+    zoom?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (target === zoom || target.classList.contains("zoom") || target.closest("[data-zoom-close]")) {
+        closeZoom();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!zoom || zoom.hidden || zoom.style.display === "none") return;
+      if (e.key === "Escape") closeZoom();
+      if (e.key === "ArrowLeft") step(-1);
+      if (e.key === "ArrowRight") step(1);
+    });
+
+    /* --- video -------------------------------------------------------- */
+    const vmodal = document.querySelector<HTMLElement>("[data-vmodal]");
+    const video = document.querySelector<HTMLVideoElement>("[data-pdp-video]");
+
+    if (vmodal) {
+      vmodal.hidden = true;
+      vmodal.style.display = "none";
+    }
+
+    document.querySelector("[data-open-video]")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!vmodal) return;
+      vmodal.hidden = false;
+      vmodal.style.display = "grid";
+      document.body.classList.add("no-scroll");
+      void video?.play().catch(() => {});
+    });
+
+    const closeVideo = () => {
+      if (!vmodal) return;
+      vmodal.hidden = true;
+      vmodal.style.display = "none";
+      video?.pause();
+      document.body.classList.remove("no-scroll");
+    };
+
+    document.querySelector("[data-close-video]")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeVideo();
+    });
+    vmodal?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (target === vmodal || target.classList.contains("vmodal") || target.closest("[data-close-video]")) {
+        closeVideo();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && vmodal && !vmodal.hidden && vmodal.style.display !== "none") closeVideo();
+    });
+
+    /* --- wishlist & bag with CRUD ------------------------------------- */
+    let pdpQuantity = 1;
+    const qtyValEl = root.querySelector<HTMLElement>("[data-pdp-qty]");
+    root.querySelector("[data-pdp-minus]")?.addEventListener("click", () => {
+      if (pdpQuantity > 1) {
+        pdpQuantity--;
+        if (qtyValEl) qtyValEl.textContent = String(pdpQuantity);
+      }
+    });
+    root.querySelector("[data-pdp-plus]")?.addEventListener("click", () => {
+      if (pdpQuantity < 10) {
+        pdpQuantity++;
+        if (qtyValEl) qtyValEl.textContent = String(pdpQuantity);
+      }
+    });
+
+    const wishBtn = root.querySelector<HTMLButtonElement>("[data-wish-pdp]");
+    if (wishBtn) {
+      const slug = wishBtn.dataset.wishPdp!;
+      const key = "jaiisha:wishlist";
+      const getWish = (): string[] => {
+        try {
+          return JSON.parse(localStorage.getItem(key) || "[]");
+        } catch {
+          return [];
+        }
+      };
+      const setWish = (l: string[]) => {
+        try {
+          localStorage.setItem(key, JSON.stringify(l));
+        } catch {}
+        window.dispatchEvent(new CustomEvent("jaiisha:store"));
+      };
+
+      const set = new Set(getWish());
+      wishBtn.setAttribute("aria-pressed", set.has(slug) ? "true" : "false");
+      wishBtn.addEventListener("click", () => {
+        if (set.has(slug)) set.delete(slug);
+        else set.add(slug);
+        wishBtn.setAttribute("aria-pressed", set.has(slug) ? "true" : "false");
+        setWish([...set]);
+      });
+    }
+
+    const bagBtn = root.querySelector<HTMLButtonElement>("[data-add-bag]");
+    const bagLabel = root.querySelector<HTMLElement>("[data-bag-label]");
+    bagBtn?.addEventListener("click", () => {
+      const v = variants[current];
+      const title = document.title.split(" | ")[0];
+      const im = v.images[0]?.src || "";
+      const item = {
+        sku: v.sku,
+        slug: location.pathname.split("/").pop() || "",
+        name: title,
+        colour: v.colour,
+        price: v.price,
+        paise: v.paise,
+        gst: Number(root.dataset.gst ?? "5"),
+        image: im,
+        quantity: pdpQuantity,
+      };
+
+      if ((window as any).jaiishaCart?.add) {
+        (window as any).jaiishaCart.add(item);
+      }
+      if (bagLabel) {
+        bagLabel.textContent = "Added to bag!";
+        setTimeout(() => (bagLabel.textContent = "Add to bag"), 2000);
+      }
+    });
+
+    /* --- write review modal CRUD -------------------------------------- */
+    const revModal = document.querySelector<HTMLElement>("[data-rev-modal]");
+    const revForm = document.querySelector<HTMLFormElement>("[data-rev-form]");
+    const revAlert = document.querySelector<HTMLElement>("[data-rev-alert]");
+    const revContainer = document.querySelector<HTMLElement>("[data-reviews-container]");
+    const starPicker = document.querySelector<HTMLElement>("[data-star-picker]");
+    const ratingInput = document.querySelector<HTMLInputElement>("[data-rating-input]");
+
+    const openRev = () => {
+      if (!revModal) return;
+      revModal.hidden = false;
+      revModal.style.display = "grid";
+      document.body.classList.add("no-scroll");
+    };
+
+    const closeRev = () => {
+      if (!revModal) return;
+      revModal.hidden = true;
+      revModal.style.display = "none";
+      document.body.classList.remove("no-scroll");
+    };
+
+    document.querySelectorAll("[data-open-rev]").forEach((b) => b.addEventListener("click", openRev));
+    document.querySelectorAll("[data-close-rev]").forEach((b) => b.addEventListener("click", closeRev));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && revModal && !revModal.hidden && revModal.style.display !== "none") closeRev();
+    });
+
+    starPicker?.querySelectorAll<HTMLButtonElement>(".rev-star").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const star = Number(btn.dataset.star || "5");
+        if (ratingInput) ratingInput.value = String(star);
+        starPicker.querySelectorAll<HTMLButtonElement>(".rev-star").forEach((s) => {
+          const val = Number(s.dataset.star || "0");
+          s.classList.toggle("is-active", val <= star);
+        });
+      });
+    });
+
+    const slug = location.pathname.split("/").pop() || "default";
+    const revKey = `jaiisha:user-reviews:${slug}`;
+
+    const loadUserReviews = () => {
+      if (!revContainer) return;
+      try {
+        const stored = JSON.parse(localStorage.getItem(revKey) || "[]");
+        stored.forEach((r: any) => {
+          const li = document.createElement("li");
+          li.className = "pdp-rev__item";
+          li.innerHTML = `
+            <div class="pdp-rev__meta">
+              <span style="color:var(--gold); letter-spacing: 2px;">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
+              <p class="pdp-rev__author">${r.author} <span>${r.city}</span></p>
+              <span class="pdp-rev__verified">Verified Customer</span>
+            </div>
+            <div>
+              <h3 class="pdp-rev__item-title">${r.title}</h3>
+              <p class="pdp-rev__body">${r.body}</p>
+            </div>
+          `;
+          revContainer.prepend(li);
+        });
+      } catch {}
+    };
+    loadUserReviews();
+
+    revForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const formData = new FormData(revForm);
+      const newRev = {
+        rating: Number(formData.get("rating") || 5),
+        author: String(formData.get("author")),
+        city: String(formData.get("city")),
+        title: String(formData.get("title")),
+        body: String(formData.get("body")),
+        date: new Date().toLocaleDateString("en-IN"),
+      };
+
+      try {
+        const existing = JSON.parse(localStorage.getItem(revKey) || "[]");
+        existing.push(newRev);
+        localStorage.setItem(revKey, JSON.stringify(existing));
+      } catch {}
+
+      if (revContainer) {
+        const li = document.createElement("li");
+        li.className = "pdp-rev__item";
+        li.style.animation = "fadeIn 0.4s";
+        li.innerHTML = `
+          <div class="pdp-rev__meta">
+            <span style="color:var(--gold); letter-spacing: 2px;">${"★".repeat(newRev.rating)}${"☆".repeat(5 - newRev.rating)}</span>
+            <p class="pdp-rev__author">${newRev.author} <span>${newRev.city}</span></p>
+            <span class="pdp-rev__verified">Verified Customer</span>
+          </div>
+          <div>
+            <h3 class="pdp-rev__item-title">${newRev.title}</h3>
+            <p class="pdp-rev__body">${newRev.body}</p>
+          </div>
+        `;
+        revContainer.prepend(li);
+      }
+
+      closeRev();
+      if (revAlert) revAlert.hidden = false;
+      revForm.reset();
+    });
+
+    /* --- share -------------------------------------------------------- */
+    const shareBtn = root.querySelector<HTMLButtonElement>("[data-share]");
+    const shareMsg = root.querySelector<HTMLElement>("[data-share-msg]");
+    shareBtn?.addEventListener("click", async () => {
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: document.title, url: location.href });
+          return;
+        }
+        await navigator.clipboard.writeText(location.href);
+        if (shareMsg) shareMsg.textContent = "Link copied";
+      } catch {
+        if (shareMsg) shareMsg.textContent = location.href;
+      }
+      setTimeout(() => shareMsg && (shareMsg.textContent = ""), 2500);
+    });
+  }
+</script>

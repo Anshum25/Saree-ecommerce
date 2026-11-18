@@ -1,0 +1,287 @@
+---
+import Base from "../layouts/Base.astro";
+import { PRODUCTS, defaultVariant, formatINR } from "@jaiisha/catalogue";
+import { SITE } from "../lib/site.ts";
+
+/**
+ * The wishlist is held in the browser in Phase 1, so the page ships a compact
+ * index of the catalogue and renders the saved rows client-side. In Phase 2
+ * this becomes a server-rendered page for a signed-in customer; the row markup
+ * stays as it is.
+ */
+const index = PRODUCTS.map((p) => {
+  const v = defaultVariant(p);
+  return {
+    slug: p.slug,
+    name: p.name,
+    craft: p.craft,
+    price: formatINR(v.price),
+    sku: v.sku,
+    image: (v.images.find((i) => i.kind === "model") ?? v.images[0]).src,
+  };
+});
+---
+
+<Base
+  title={`Your Wishlist | ${SITE.name}`}
+  description="The sarees you have saved at JAIISHA."
+  canonicalPath="/wishlist"
+>
+  <div class="shell saved">
+    <header class="saved__head">
+      <p class="eyebrow">Saved</p>
+      <h1 class="saved__title">Your wishlist</h1>
+      <p class="saved__note" data-note>Loading your saved sarees…</p>
+    </header>
+
+    <ul class="saved__list" data-list></ul>
+
+    <div class="saved__empty" data-empty hidden>
+      <p class="saved__empty-title">Nothing saved yet</p>
+      <p class="saved__empty-body">
+        Tap the heart on any saree to keep it here while you decide.
+      </p>
+      <a class="btn" href="/sarees">Browse the collection</a>
+    </div>
+
+    <div class="saved__foot" data-foot hidden>
+      <a class="btn btn--wa" data-wa-all>Ask about these on WhatsApp</a>
+      <button class="btn btn--ghost" type="button" data-clear>Clear wishlist</button>
+    </div>
+  </div>
+
+  <script type="application/json" id="catalogue-index" set:html={JSON.stringify(index)} />
+</Base>
+
+<style>
+  .saved {
+    padding-block: clamp(2rem, 5vw, 4rem) var(--section-y);
+    min-height: 60svh;
+  }
+
+  .saved__head {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .saved__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+  }
+
+  .saved__note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+
+  .saved__list {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .saved__list:empty {
+    display: none;
+  }
+
+  .srow {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr) auto;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    align-items: center;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .srow__img {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--bg-sunk);
+  }
+
+  .srow__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .srow__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+  }
+
+  .srow__name:hover {
+    color: var(--wine);
+  }
+
+  .srow__craft {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 0.2rem;
+  }
+
+  .srow__price {
+    font-size: 0.94rem;
+    margin-top: 0.35rem;
+  }
+
+  .srow__actions {
+    display: grid;
+    gap: 0.4rem;
+    justify-items: end;
+  }
+
+  .srow__remove {
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    border-bottom: 1px solid currentColor;
+  }
+
+  .srow__remove:hover {
+    color: var(--maroon);
+  }
+
+  .saved__empty {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+    padding-block: 2rem;
+  }
+
+  .saved__empty-title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+  }
+
+  .saved__empty-body {
+    color: var(--ink-soft);
+    max-width: 42ch;
+  }
+
+  .saved__empty .btn {
+    margin-top: 0.8rem;
+  }
+
+  .saved__foot {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 1.8rem;
+  }
+
+  @media (max-width: 560px) {
+    .srow {
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+    }
+    .srow__actions {
+      grid-column: 2;
+      justify-items: start;
+    }
+  }
+</style>
+
+<script>
+  interface Row {
+    slug: string;
+    name: string;
+    craft: string;
+    price: string;
+    sku: string;
+    image: string;
+  }
+
+  const KEY = "jaiisha:wishlist";
+  const WHATSAPP = "919000000000";
+
+  const indexEl = document.getElementById("catalogue-index");
+  const catalogue: Row[] = indexEl ? JSON.parse(indexEl.textContent || "[]") : [];
+  const byslug = new Map(catalogue.map((r) => [r.slug, r]));
+
+  const list = document.querySelector<HTMLElement>("[data-list]");
+  const note = document.querySelector<HTMLElement>("[data-note]");
+  const empty = document.querySelector<HTMLElement>("[data-empty]");
+  const foot = document.querySelector<HTMLElement>("[data-foot]");
+  const waAll = document.querySelector<HTMLAnchorElement>("[data-wa-all]");
+
+  const read = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) || "[]");
+    } catch {
+      return [];
+    }
+  };
+
+  const write = (slugs: string[]) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(slugs));
+    } catch {
+      /* private mode */
+    }
+    window.dispatchEvent(new CustomEvent("jaiisha:store"));
+  };
+
+  const render = () => {
+    if (!list) return;
+    // A product removed from the catalogue should not break the page.
+    const slugs = read().filter((s) => byslug.has(s));
+    list.replaceChildren();
+
+    if (note) {
+      note.textContent =
+        slugs.length === 0
+          ? ""
+          : `${slugs.length} ${slugs.length === 1 ? "saree" : "sarees"} saved on this device.`;
+    }
+    if (empty) empty.hidden = slugs.length > 0;
+    if (foot) foot.hidden = slugs.length === 0;
+
+    slugs.forEach((slug) => {
+      const r = byslug.get(slug)!;
+      const li = document.createElement("li");
+      li.className = "srow";
+      li.innerHTML = `
+        <a class="srow__img" href="/sarees/${r.slug}">
+          <img src="${r.image}" alt="${r.name}" width="300" height="400" loading="lazy" decoding="async"/>
+        </a>
+        <div>
+          <a class="srow__name" href="/sarees/${r.slug}">${r.name}</a>
+          <p class="srow__craft">${r.craft}</p>
+          <p class="srow__price">${r.price}</p>
+        </div>
+        <div class="srow__actions">
+          <a class="btn btn--ghost" href="/sarees/${r.slug}">View</a>
+          <button class="srow__remove" type="button" data-remove="${r.slug}">Remove</button>
+        </div>`;
+      list.appendChild(li);
+    });
+
+    list.querySelectorAll<HTMLButtonElement>("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        write(read().filter((s) => s !== btn.dataset.remove));
+        render();
+      });
+    });
+
+    if (waAll) {
+      const lines = slugs.map((s) => {
+        const r = byslug.get(s)!;
+        return `• ${r.name} (${r.sku}) — ${r.price}`;
+      });
+      waAll.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+        `Hello JAIISHA, I have saved these sarees and would like to know more:\n\n${lines.join("\n")}`,
+      )}`;
+      waAll.target = "_blank";
+      waAll.rel = "noopener noreferrer";
+    }
+  };
+
+  document.querySelector("[data-clear]")?.addEventListener("click", () => {
+    write([]);
+    render();
+  });
+
+  render();
+</script>

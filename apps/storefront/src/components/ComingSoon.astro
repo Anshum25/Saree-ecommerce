@@ -1,0 +1,104 @@
+---
+import { PHASE2_NOTICE, SITE, whatsappLink } from "../lib/site.ts";
+
+/**
+ * Shared shell for features that arrive with Phase 2 (accounts, order
+ * tracking). It says plainly what is not built yet and gives the customer the
+ * channel that does work, rather than showing a broken screen.
+ */
+interface Props {
+  eyebrow: string;
+  title: string;
+  body: string;
+  /** What to do in the meantime. */
+  meanwhile: string;
+  waMessage: string;
+}
+const { eyebrow, title, body, meanwhile, waMessage } = Astro.props;
+---
+
+<div class="shell soon">
+  <p class="eyebrow">{eyebrow}</p>
+  <h1 class="soon__title">{title}</h1>
+  <p class="soon__body">{body}</p>
+
+  <div class="soon__card">
+    <h2 class="soon__card-title">In the meantime</h2>
+    <p>{meanwhile}</p>
+    <div class="soon__actions">
+      <a class="btn btn--wa" href={whatsappLink(waMessage)} target="_blank" rel="noopener noreferrer">
+        Message us on WhatsApp
+      </a>
+      <a class="btn btn--ghost" href="/sarees">Browse sarees</a>
+    </div>
+    <p class="soon__meta">{SITE.phoneDisplay} · {SITE.email}</p>
+  </div>
+
+  <p class="soon__phase">{PHASE2_NOTICE}</p>
+</div>
+
+<style>
+  .soon {
+    padding-block: clamp(3rem, 8vw, 6rem) var(--section-y);
+    display: grid;
+    gap: 0.7rem;
+    justify-items: start;
+    max-width: 62rem;
+    min-height: 55svh;
+  }
+
+  .soon__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+  }
+
+  .soon__body {
+    max-width: 58ch;
+    font-size: var(--step-1);
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .soon__card {
+    margin-top: 1.5rem;
+    padding: clamp(1.2rem, 3vw, 2rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+    width: 100%;
+  }
+
+  .soon__card-title {
+    font-size: var(--step-1);
+    font-weight: 400;
+  }
+
+  .soon__card p {
+    max-width: 60ch;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+
+  .soon__actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+
+  .soon__meta {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .soon__phase {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--ink-faint);
+  }
+</style>

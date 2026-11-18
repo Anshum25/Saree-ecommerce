@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#651D35"/>
+      <stop offset="55%" stop-color="#42263D"/>
+      <stop offset="100%" stop-color="#1C0F15"/>
+    </linearGradient>
+    <pattern id="j" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M0 44 L44 0 M-44 44 L44 -44" stroke="#B58A43" stroke-width="1" opacity="0.18" fill="none"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <rect width="1200" height="630" fill="url(#j)"/>
+  <rect x="48" y="48" width="1104" height="534" fill="none" stroke="#B58A43" stroke-width="1.5" opacity="0.55"/>
+  <g transform="translate(600 236)">
+    <path d="M0 -46 L13 -13 L46 0 L13 13 L0 46 L-13 13 L-46 0 L-13 -13 Z" fill="none" stroke="#D9B872" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="0" cy="0" r="10" fill="#D9B872"/>
+  </g>
+  <text x="600" y="372" text-anchor="middle" font-family="Georgia, serif" font-size="92" letter-spacing="26" fill="#F4EBDD">JAIISHA</text>
+  <text x="600" y="424" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="21" letter-spacing="11" fill="#B58A43">BANARASI SILK  .  VARANASI</text>
+  <text x="600" y="506" text-anchor="middle" font-family="Georgia, serif" font-size="31" font-style="italic" fill="#CBB8B0">Handwoven silk, for the occasions you keep</text>
+</svg>

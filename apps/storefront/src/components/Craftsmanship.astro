@@ -1,0 +1,176 @@
+---
+/**
+ * The brand story. Specific numbers and named techniques, because that is what
+ * separates a boutique that knows its craft from a dropshipper.
+ */
+const steps = [
+  { n: "I", title: "The design is punched", body: "A naqshaband draws the motif on graph paper, then punches it into jacquard cards. One saree can take 1,500 cards." },
+  { n: "II", title: "The warp is dressed", body: "Five to six thousand silk threads are drawn through the loom by hand. A single error repeats across six metres." },
+  { n: "III", title: "The weaving", body: "Two weavers at a pit loom, eight hours a day, two to four weeks for one kadwa saree." },
+  { n: "IV", title: "Cutting and finishing", body: "The saree is cut from the loom, the pallu finished, loose zari secured, and the weaver's certificate issued." },
+];
+
+const stats = [
+  { value: "2–4", label: "weeks on the loom" },
+  { value: "5,500+", label: "warp threads" },
+  { value: "6.3m", label: "of unbroken silk" },
+  { value: "100%", label: "woven in Varanasi" },
+];
+---
+
+<section class="craft section section--dark" aria-labelledby="craft-title">
+  <div class="shell craft__inner">
+    <div class="craft__intro">
+      <p class="eyebrow">Our craftsmanship</p>
+      <h2 class="craft__title" id="craft-title">
+        A Banarasi is counted, not printed
+      </h2>
+      <p class="lede craft__lede">
+        Varanasi has been weaving figured silk since the Mughal karkhanas, and the method has
+        barely changed: a punched design, a hand-dressed warp, and two people at a pit loom for
+        weeks. We buy direct from weaving families in Madanpura and Lallapura, and every saree
+        leaves with the name of the loom it came off.
+      </p>
+      <a class="btn btn--on-dark craft__cta" href="/craft">Read how a Banarasi is made</a>
+
+      <dl class="craft__stats">
+        {
+          stats.map((s) => (
+            <div class="craft__stat">
+              <dt>{s.value}</dt>
+              <dd>{s.label}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+
+    <ol class="craft__steps">
+      {
+        steps.map((s) => (
+          <li class="craft__step reveal">
+            <span class="craft__step-n" aria-hidden="true">{s.n}</span>
+            <div>
+              <h3 class="craft__step-title">{s.title}</h3>
+              <p class="craft__step-body">{s.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .craft {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Faint zari lattice in the background, echoing the jaal on the sarees */
+  .craft::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(181, 138, 67, 0.09) 0 1px, transparent 1px 46px),
+      repeating-linear-gradient(-45deg, rgba(181, 138, 67, 0.09) 0 1px, transparent 1px 46px);
+    pointer-events: none;
+  }
+
+  .craft__inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .craft__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+    margin: 0.6rem 0 1rem;
+  }
+
+  .craft__lede {
+    color: var(--on-dark-soft);
+  }
+
+  .craft__cta {
+    margin-top: 1.6rem;
+  }
+
+  /* --- stats ----------------------------------------------------------- */
+  .craft__stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin: clamp(2rem, 5vw, 3.5rem) 0 0;
+    padding-top: 1.6rem;
+    border-top: 1px solid rgba(181, 138, 67, 0.3);
+  }
+
+  .craft__stat dt {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    color: var(--gold-light);
+    line-height: 1;
+  }
+
+  .craft__stat dd {
+    margin: 0.35rem 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(246, 239, 228, 0.6);
+    line-height: 1.45;
+  }
+
+  /* --- steps ----------------------------------------------------------- */
+  .craft__steps {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid rgba(246, 239, 228, 0.14);
+  }
+
+  .craft__step {
+    display: grid;
+    grid-template-columns: 3.2rem 1fr;
+    gap: 1.2rem;
+    padding-block: clamp(1.1rem, 2.5vw, 1.7rem);
+    border-bottom: 1px solid rgba(246, 239, 228, 0.14);
+  }
+
+  .craft__step-n {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--gold);
+    letter-spacing: 0.08em;
+  }
+
+  .craft__step-title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.25rem;
+  }
+
+  .craft__step-body {
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--on-dark-soft);
+  }
+
+  @media (max-width: 900px) {
+    .craft__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .craft__stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.4rem 1rem;
+    }
+  }
+</style>

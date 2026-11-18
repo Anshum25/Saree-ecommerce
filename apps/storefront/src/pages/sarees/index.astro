@@ -1,0 +1,667 @@
+---
+import Base from "../../layouts/Base.astro";
+import FilterPanel from "../../components/FilterPanel.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import { PRICE_BANDS, PRODUCTS, SORT_OPTIONS, priceFrom } from "@jaiisha/catalogue";
+import { SITE } from "../../lib/site.ts";
+
+/**
+ * The full catalogue is rendered once and filtered in the browser.
+ *
+ * At this catalogue size that is strictly better than paginated server
+ * queries: filtering is instantaneous, the page is fully static and cacheable,
+ * and every product is in the HTML for search engines. Past roughly 300
+ * products, switch this page to `export const prerender = false` and call
+ * GET /api/products on the Next backend — the query shape is already the same.
+ */
+
+const items = PRODUCTS.map((p) => {
+  const from = priceFrom(p);
+  const bands = PRICE_BANDS.filter(
+    (b) =>
+      p.variants.some(
+        (v) => v.price.paise >= b.minPaise && (b.maxPaise === null || v.price.paise < b.maxPaise),
+      ),
+  ).map((b) => b.slug);
+
+  return {
+    product: p,
+    data: {
+      "data-occasion": p.occasions.join(" "),
+      "data-colour": p.variants.map((v) => v.colour.slug).join(" "),
+      "data-fabric": p.fabric,
+      "data-weave": p.weave,
+      "data-price": bands.join(" "),
+      "data-from": String(from.paise),
+      "data-rating": String(p.rating.value),
+      "data-reviews": String(p.rating.count),
+      "data-created": p.createdAt,
+      "data-bestseller": p.badges.includes("bestseller") ? "1" : "0",
+      "data-text": [p.name, p.craft, p.fabric, p.tagline, ...p.collections].join(" ").toLowerCase(),
+    },
+  };
+});
+---
+
+<Base
+  title={`All Banarasi Silk Sarees | ${SITE.name}`}
+  description="Browse every JAIISHA saree: handloom Katan silk, kadwa bridal, organza, georgette and tissue. Filter by occasion, colour, fabric and price."
+  canonicalPath="/sarees"
+>
+  <nav class="crumbs shell" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li aria-current="page">All Sarees</li>
+    </ol>
+  </nav>
+
+  <header class="plp-head shell">
+    <p class="eyebrow">The collection</p>
+    <h1 class="plp-head__title">Every saree on the shelf</h1>
+    <p class="lede">
+      {PRODUCTS.length} designs, woven in Varanasi, in {
+        new Set(PRODUCTS.flatMap((p) => p.variants.map((v) => v.colour.slug))).size
+      } colourways. Filter by what the saree is for — the rest follows.
+    </p>
+  </header>
+
+  <div class="plp shell">
+    <!-- Filter rail -->
+    <aside class="plp__rail" id="filter-rail">
+      <div class="plp__rail-inner">
+        <FilterPanel />
+      </div>
+    </aside>
+
+    <!-- Results -->
+    <section class="plp__results" aria-label="Sarees">
+      <div class="toolbar">
+        <p class="toolbar__count">
+          <strong data-count>{PRODUCTS.length}</strong>
+          <span data-count-label>sarees</span>
+        </p>
+
+        <div class="toolbar__right">
+          <button class="toolbar__filter-btn btn btn--ghost" type="button" data-open-filters>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+            Filters
+            <span class="toolbar__badge" data-active-count hidden>0</span>
+          </button>
+
+          <label class="toolbar__sort">
+            <span class="visually-hidden">Sort by</span>
+            <select data-sort>
+              {SORT_OPTIONS.map((s) => <option value={s.key}>{s.label}</option>)}
+            </select>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+          </label>
+        </div>
+      </div>
+
+      <ul class="toolbar__chips" data-chips aria-label="Active filters"></ul>
+
+      <ul class="plp__grid" data-grid>
+        {
+          items.map(({ product, data }, i) => (
+            <li class="plp__cell" {...data}>
+              <ProductCard product={product} priority={i < 4} />
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="plp__empty" data-empty hidden>
+        <p class="plp__empty-title">Nothing matches all of those at once</p>
+        <p class="plp__empty-body">
+          Loosen one filter, or tell us what you are looking for and we will weave it to order.
+        </p>
+        <div class="plp__empty-actions">
+          <button class="btn btn--ghost" type="button" data-clear-empty>Clear filters</button>
+          <a class="btn btn--wa" href={`https://wa.me/${SITE.whatsapp}`}>Ask for a custom piece</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Mobile filter drawer -->
+  <div class="fdrawer" data-fdrawer hidden style="display: none;">
+    <div class="fdrawer__scrim" data-close-filters></div>
+    <div class="fdrawer__panel" role="dialog" aria-modal="true" aria-label="Filters">
+      <div class="fdrawer__top">
+        <strong>Filters</strong>
+        <button class="icon-x" type="button" aria-label="Close filters" data-close-filters>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.5" fill="none" /></svg>
+        </button>
+      </div>
+      <div class="fdrawer__body" data-fdrawer-slot></div>
+      <div class="fdrawer__foot">
+        <button class="btn" type="button" data-close-filters>
+          Show <span data-count-mirror>{PRODUCTS.length}</span> sarees
+        </button>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  /* --- breadcrumb & head ------------------------------------------------ */
+  .crumbs {
+    padding-top: 1.5rem;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+  }
+
+  .crumbs ol {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .crumbs li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: var(--line-strong);
+  }
+
+  .crumbs a:hover {
+    color: var(--wine);
+  }
+
+  .plp-head {
+    padding-block: clamp(1.2rem, 3vw, 2.5rem);
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .plp-head__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+  }
+
+  /* --- layout ----------------------------------------------------------- */
+  .plp {
+    display: grid;
+    grid-template-columns: 16.5rem minmax(0, 1fr);
+    gap: clamp(1.5rem, 3.5vw, 3.5rem);
+    padding-bottom: var(--section-y);
+    align-items: start;
+  }
+
+  .plp__rail-inner {
+    position: sticky;
+    top: 6rem;
+    max-height: calc(100svh - 8rem);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    scrollbar-width: thin;
+  }
+
+  /* --- toolbar ---------------------------------------------------------- */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.2rem;
+  }
+
+  .toolbar__count {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+  }
+
+  .toolbar__count strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .toolbar__filter-btn {
+    display: none;
+    padding: 0.6rem 1.1rem;
+    gap: 0.45rem;
+  }
+
+  .toolbar__filter-btn svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .toolbar__badge {
+    display: grid;
+    place-items: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding-inline: 0.2rem;
+    border-radius: var(--r-pill);
+    background: var(--gold);
+    color: #1c0f15;
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  .toolbar__sort {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .toolbar__sort select {
+    appearance: none;
+    padding: 0.6rem 2.2rem 0.6rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    border-radius: var(--r-pill);
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .toolbar__sort svg {
+    position: absolute;
+    right: 0.7rem;
+    width: 1rem;
+    height: 1rem;
+    pointer-events: none;
+    color: var(--ink-faint);
+  }
+
+  /* --- active chips ----------------------------------------------------- */
+  .toolbar__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .toolbar__chips:empty {
+    display: none;
+  }
+
+  .toolbar__chips button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.5rem 0.3rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    font-size: 0.76rem;
+  }
+
+  .toolbar__chips button:hover {
+    border-color: var(--wine);
+    color: var(--wine);
+  }
+
+  .toolbar__chips svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  /* --- grid ------------------------------------------------------------- */
+  .plp__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.2rem, 2.5vw, 2.2rem) clamp(0.8rem, 1.6vw, 1.5rem);
+  }
+
+  .plp__cell[hidden] {
+    display: none;
+  }
+
+  /* --- empty ------------------------------------------------------------ */
+  .plp__empty {
+    padding: clamp(2rem, 6vw, 4.5rem) 1rem;
+    text-align: center;
+    display: grid;
+    gap: 0.6rem;
+    justify-items: center;
+  }
+
+  .plp__empty-title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+  }
+
+  .plp__empty-body {
+    max-width: 44ch;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .plp__empty-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.8rem;
+  }
+
+  /* --- mobile drawer ---------------------------------------------------- */
+  .fdrawer {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+  }
+
+  .fdrawer[hidden] {
+    display: none !important;
+  }
+
+  .fdrawer__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 15, 21, 0.5);
+  }
+
+  .fdrawer__panel {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: min(22rem, 90vw);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fdrawer__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem var(--gutter);
+    border-bottom: 1px solid var(--line);
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .icon-x {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .icon-x svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .fdrawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem var(--gutter);
+  }
+
+  .fdrawer__foot {
+    padding: 1rem var(--gutter);
+    border-top: 1px solid var(--line);
+  }
+
+  .fdrawer__foot .btn {
+    width: 100%;
+  }
+
+  /* --- responsive ------------------------------------------------------- */
+  @media (max-width: 1100px) {
+    .plp__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 960px) {
+    .plp {
+      grid-template-columns: 1fr;
+    }
+    .plp__rail {
+      display: none;
+    }
+    .toolbar__filter-btn {
+      display: inline-flex;
+    }
+    .plp__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .plp__grid {
+      gap: 1.4rem 0.8rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Client-side faceting.
+   *
+   * URL is the source of truth, so a filtered view can be shared, bookmarked
+   * and arrived at from a nav link like /sarees?colour=maroon.
+   */
+  type Facet = "occasion" | "colour" | "fabric" | "price" | "weave";
+  const FACETS: Facet[] = ["occasion", "colour", "fabric", "price", "weave"];
+
+  const form = document.querySelector<HTMLFormElement>("[data-filters]");
+  const grid = document.querySelector<HTMLElement>("[data-grid]");
+  const cells = Array.from(document.querySelectorAll<HTMLElement>(".plp__cell"));
+  const countEl = document.querySelector<HTMLElement>("[data-count]");
+  const countLabel = document.querySelector<HTMLElement>("[data-count-label]");
+  const countMirror = document.querySelector<HTMLElement>("[data-count-mirror]");
+  const chips = document.querySelector<HTMLElement>("[data-chips]");
+  const empty = document.querySelector<HTMLElement>("[data-empty]");
+  const sortEl = document.querySelector<HTMLSelectElement>("[data-sort]");
+  const sortMirror = document.querySelector<HTMLSelectElement>("[data-sort-mirror]");
+  const activeCount = document.querySelector<HTMLElement>("[data-active-count]");
+
+  if (form && grid && countEl) {
+    /** Human labels for the active-filter chips. */
+    const labelOf = (facet: Facet, value: string): string => {
+      const input = form.querySelector<HTMLInputElement>(`input[name="${facet}"][value="${value}"]`);
+      const label = input?.closest("label");
+      const text =
+        label?.querySelector(".check__label")?.firstChild?.textContent?.trim() ||
+        label?.querySelector(".chip-colour__name")?.textContent?.trim();
+      return text || value;
+    };
+
+    const selected = (): Record<Facet, string[]> =>
+      Object.fromEntries(
+        FACETS.map((f) => [
+          f,
+          Array.from(form.querySelectorAll<HTMLInputElement>(`input[name="${f}"]:checked`)).map(
+            (i) => i.value,
+          ),
+        ]),
+      ) as Record<Facet, string[]>;
+
+    const searchTerm = () =>
+      (new URLSearchParams(location.search).get("search") ||
+        new URLSearchParams(location.search).get("q") ||
+        "").toLowerCase().trim();
+
+    const sorters: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+      newest: (a, b) => (b.dataset.created ?? "").localeCompare(a.dataset.created ?? ""),
+      "price-asc": (a, b) => Number(a.dataset.from) - Number(b.dataset.from),
+      "price-desc": (a, b) => Number(b.dataset.from) - Number(a.dataset.from),
+      bestsellers: (a, b) =>
+        Number(b.dataset.bestseller) - Number(a.dataset.bestseller) ||
+        Number(b.dataset.reviews) - Number(a.dataset.reviews),
+      "top-rated": (a, b) =>
+        Number(b.dataset.rating) - Number(a.dataset.rating) ||
+        Number(b.dataset.reviews) - Number(a.dataset.reviews),
+    };
+
+    const apply = (pushUrl = true) => {
+      const sel = selected();
+      const term = searchTerm();
+      let shown = 0;
+
+      cells.forEach((cell) => {
+        const ok = FACETS.every((facet) => {
+          const wanted = sel[facet];
+          if (wanted.length === 0) return true;
+          const has = (cell.dataset[facet] ?? "").split(" ");
+          // Within a facet the options are OR'd; across facets they are AND'd,
+          // which is what shoppers expect.
+          return wanted.some((w) => has.includes(w));
+        });
+
+        const matchesTerm = !term || (cell.dataset.text ?? "").includes(term);
+        const visible = ok && matchesTerm;
+        cell.hidden = !visible;
+        if (visible) shown++;
+      });
+
+      // Sort the visible set.
+      const sortKey = sortEl?.value ?? "newest";
+      const order = sorters[sortKey] ?? sorters.newest;
+      [...cells].sort(order).forEach((cell) => grid.appendChild(cell));
+
+      // Counts
+      countEl.textContent = String(shown);
+      if (countLabel) countLabel.textContent = shown === 1 ? "saree" : "sarees";
+      if (countMirror) countMirror.textContent = String(shown);
+      if (empty) empty.hidden = shown !== 0;
+      grid.hidden = shown === 0;
+
+      // Chips
+      const total = FACETS.reduce((n, f) => n + sel[f].length, 0);
+      if (activeCount) {
+        activeCount.textContent = String(total);
+        activeCount.hidden = total === 0;
+      }
+
+      if (chips) {
+        chips.replaceChildren();
+        FACETS.forEach((facet) => {
+          sel[facet].forEach((value) => {
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.innerHTML = `${labelOf(facet, value)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+            btn.setAttribute("aria-label", `Remove filter ${labelOf(facet, value)}`);
+            btn.addEventListener("click", () => {
+              const input = form.querySelector<HTMLInputElement>(
+                `input[name="${facet}"][value="${value}"]`,
+              );
+              if (input) input.checked = false;
+              apply();
+            });
+            li.appendChild(btn);
+            chips.appendChild(li);
+          });
+        });
+
+        if (term) {
+          const li = document.createElement("li");
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.innerHTML = `“${term}”<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+          btn.addEventListener("click", () => {
+            const url = new URL(location.href);
+            url.searchParams.delete("search");
+            url.searchParams.delete("q");
+            history.replaceState({}, "", url);
+            apply();
+          });
+          li.appendChild(btn);
+          chips.appendChild(li);
+        }
+      }
+
+      if (pushUrl) {
+        const url = new URL(location.href);
+        FACETS.forEach((facet) => {
+          url.searchParams.delete(facet);
+          sel[facet].forEach((v) => url.searchParams.append(facet, v));
+        });
+        if (sortKey && sortKey !== "newest") url.searchParams.set("sort", sortKey);
+        else url.searchParams.delete("sort");
+        history.replaceState({}, "", url);
+      }
+    };
+
+    /** Read the URL into the form on first load. */
+    const hydrate = () => {
+      const params = new URLSearchParams(location.search);
+      FACETS.forEach((facet) => {
+        params.getAll(facet).forEach((value) => {
+          const input = form.querySelector<HTMLInputElement>(
+            `input[name="${facet}"][value="${value}"]`,
+          );
+          if (input && !input.disabled) input.checked = true;
+        });
+      });
+      const sort = params.get("sort");
+      if (sort && sortEl) {
+        sortEl.value = sort;
+        if (sortMirror) sortMirror.value = sort;
+      }
+    };
+
+    hydrate();
+    apply(false);
+
+    form.addEventListener("change", (e) => {
+      // Keep the two sort controls in step.
+      const t = e.target as HTMLElement;
+      if (t === sortMirror && sortEl && sortMirror) sortEl.value = sortMirror.value;
+      apply();
+    });
+
+    sortEl?.addEventListener("change", () => {
+      if (sortMirror && sortEl) sortMirror.value = sortEl.value;
+      apply();
+    });
+
+    const clearAll = () => {
+      form.reset();
+      form
+        .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
+        .forEach((i) => (i.checked = false));
+      const url = new URL(location.href);
+      url.search = "";
+      history.replaceState({}, "", url);
+      apply();
+    };
+
+    form.querySelector("[data-clear]")?.addEventListener("click", clearAll);
+    document.querySelector("[data-clear-empty]")?.addEventListener("click", clearAll);
+
+    /* --- mobile drawer: move the real form in and out ------------------- */
+    const drawer = document.querySelector<HTMLElement>("[data-fdrawer]");
+    const slot = document.querySelector<HTMLElement>("[data-fdrawer-slot]");
+    const railHome = document.querySelector<HTMLElement>(".plp__rail-inner");
+
+    const openFilters = () => {
+      if (!drawer || !slot) return;
+      slot.appendChild(form);
+      drawer.hidden = false;
+      drawer.style.display = "block";
+      document.body.classList.add("no-scroll");
+    };
+
+    const closeFilters = () => {
+      if (!drawer || !railHome) return;
+      railHome.appendChild(form);
+      drawer.hidden = true;
+      drawer.style.display = "none";
+      document.body.classList.remove("no-scroll");
+    };
+
+    document.querySelector("[data-open-filters]")?.addEventListener("click", openFilters);
+    document
+      .querySelectorAll("[data-close-filters]")
+      .forEach((b) => b.addEventListener("click", closeFilters));
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && drawer && !drawer.hidden) closeFilters();
+    });
+  }
+</script>

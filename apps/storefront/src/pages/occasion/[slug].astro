@@ -1,0 +1,306 @@
+---
+import Base from "../../layouts/Base.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import {
+  COLOURS,
+  FABRICS,
+  OCCASIONS,
+  queryProducts,
+  type OccasionMeta,
+  type Product,
+} from "@jaiisha/catalogue";
+import { SITE, whatsappLink } from "../../lib/site.ts";
+
+/**
+ * Prerendered occasion landing pages.
+ *
+ * These exist for search and for sharing ("JAIISHA Karwa Chauth sarees"), so
+ * the products are rendered server-side rather than filtered in the browser.
+ * The tradition copy is the point: it is the boutique's advice, in writing.
+ */
+export function getStaticPaths() {
+  return OCCASIONS.map((occasion) => ({
+    params: { slug: occasion.slug },
+    props: {
+      occasion,
+      products: queryProducts({ occasion: occasion.slug, sort: "bestsellers", perPage: 99 }).items,
+    },
+  }));
+}
+
+interface Props {
+  occasion: OccasionMeta;
+  products: Product[];
+}
+const { occasion, products } = Astro.props;
+
+/** Which colours and fabrics this occasion actually offers. */
+const colours = COLOURS.filter((c) =>
+  products.some((p) => p.variants.some((v) => v.colour.slug === c.slug)),
+);
+const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug));
+---
+
+<Base
+  title={`${occasion.name} Sarees — Handwoven Banarasi Silk | ${SITE.name}`}
+  description={`${occasion.blurb} ${occasion.tradition}`.slice(0, 180)}
+  canonicalPath={`/occasion/${occasion.slug}`}
+>
+  <nav class="crumbs shell" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/sarees">Sarees</a></li>
+      <li aria-current="page">{occasion.name}</li>
+    </ol>
+  </nav>
+
+  <header class="ohead" style={`--accent:${occasion.accent}`}>
+    <div class="shell ohead__inner">
+      <p class="eyebrow">Shop by occasion</p>
+      <h1 class="ohead__title">{occasion.name}</h1>
+      <p class="ohead__tradition">{occasion.tradition}</p>
+
+      <dl class="ohead__facts">
+        <div>
+          <dt>Pieces</dt>
+          <dd>{products.length}</dd>
+        </div>
+        <div>
+          <dt>Fabrics</dt>
+          <dd>{fabrics.map((f) => f.name).join(", ")}</dd>
+        </div>
+        <div>
+          <dt>Colours</dt>
+          <dd>{colours.map((c) => c.name).join(", ")}</dd>
+        </div>
+      </dl>
+    </div>
+  </header>
+
+  <section class="olist section" aria-label={`${occasion.name} sarees`}>
+    <div class="shell">
+      <div class="olist__bar">
+        <p class="olist__count">{products.length} {products.length === 1 ? "saree" : "sarees"}</p>
+        <div class="olist__links">
+          {
+            colours.slice(0, 6).map((c) => (
+              <a href={`/sarees?occasion=${occasion.slug}&colour=${c.slug}`} class="olist__chip">
+                <span style={`--c:${c.hex}`}></span>
+                {c.name}
+              </a>
+            ))
+          }
+          <a href={`/sarees?occasion=${occasion.slug}`} class="olist__all">All filters</a>
+        </div>
+      </div>
+
+      <div class="olist__grid">
+        {products.map((p, i) => <ProductCard product={p} priority={i < 4} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="oadvice section section--sunk" aria-labelledby="oadvice-title">
+    <div class="shell oadvice__inner">
+      <div>
+        <p class="eyebrow">Not certain what is right</p>
+        <h2 class="oadvice__title" id="oadvice-title">
+          Tell us whose {occasion.name.toLowerCase()} it is
+        </h2>
+        <p class="lede">
+          The correct saree for a bride, her mother and a guest are three different sarees. Send us
+          the occasion, your relationship to it and the colour family you have in mind, and we will
+          send three pieces with video, in daylight and lamp light.
+        </p>
+      </div>
+      <a
+        class="btn btn--wa"
+        href={whatsappLink(`Hello JAIISHA, I need a saree for ${occasion.name.toLowerCase()}.\nMy budget: \nColour preference: `)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ask on WhatsApp
+      </a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .crumbs {
+    padding-top: 1.5rem;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+  }
+  .crumbs ol {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .crumbs li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: var(--line-strong);
+  }
+  .crumbs a:hover {
+    color: var(--wine);
+  }
+
+  /* --- head ------------------------------------------------------------- */
+  .ohead {
+    margin-top: 1.2rem;
+    padding-block: clamp(2rem, 5vw, 3.5rem);
+    background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 55%, #1c0f15));
+    color: var(--on-dark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ohead::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(240, 220, 174, 0.08) 0 1px, transparent 1px 38px),
+      repeating-linear-gradient(-45deg, rgba(240, 220, 174, 0.08) 0 1px, transparent 1px 38px);
+    pointer-events: none;
+  }
+
+  .ohead__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .ohead__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+  }
+
+  .ohead__tradition {
+    max-width: 68ch;
+    font-size: var(--step-0);
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(246, 239, 228, 0.86);
+  }
+
+  .ohead__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
+    margin: 1.2rem 0 0;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(246, 239, 228, 0.22);
+  }
+
+  .ohead__facts dt {
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .ohead__facts dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.88rem;
+    max-width: 30ch;
+  }
+
+  /* --- list ------------------------------------------------------------- */
+  .olist__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.6rem;
+  }
+
+  .olist__count {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+  }
+
+  .olist__links {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .olist__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem 0.3rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    font-size: 0.76rem;
+    transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
+  }
+
+  .olist__chip span {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  }
+
+  .olist__chip:hover {
+    border-color: var(--wine);
+    color: var(--wine);
+  }
+
+  .olist__all {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid currentColor;
+    margin-left: 0.4rem;
+  }
+
+  .olist__all:hover {
+    color: var(--wine);
+  }
+
+  .olist__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1.2rem, 2.5vw, 2.2rem) clamp(0.8rem, 1.6vw, 1.5rem);
+  }
+
+  /* --- advice ----------------------------------------------------------- */
+  .oadvice__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+
+  .oadvice__title {
+    font-size: var(--step-2);
+    font-weight: 300;
+    margin: 0.5rem 0 0.7rem;
+  }
+
+  @media (max-width: 1000px) {
+    .olist__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .olist__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .oadvice__inner {
+      grid-template-columns: 1fr;
+      justify-items: start;
+    }
+  }
+</style>

@@ -1,0 +1,228 @@
+---
+import Base from "../../layouts/Base.astro";
+import { POLICIES, type Policy } from "../../lib/policies.ts";
+import { SITE, whatsappLink } from "../../lib/site.ts";
+
+export function getStaticPaths() {
+  return POLICIES.map((policy) => ({ params: { slug: policy.slug }, props: { policy } }));
+}
+
+interface Props {
+  policy: Policy;
+}
+const { policy } = Astro.props;
+
+const updated = new Date(policy.updated).toLocaleDateString("en-IN", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+---
+
+<Base
+  title={`${policy.title} | ${SITE.name}`}
+  description={policy.intro}
+  canonicalPath={`/policies/${policy.slug}`}
+>
+  <div class="shell doc">
+    <nav class="doc__side" aria-label="Policies">
+      <p class="doc__side-head">Help & policies</p>
+      <ul>
+        {
+          POLICIES.map((p) => (
+            <li>
+              <a href={`/policies/${p.slug}`} aria-current={p.slug === policy.slug ? "page" : undefined}>
+                {p.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="btn btn--wa doc__side-wa" href={whatsappLink("I have a question about an order.")}>
+        Ask us instead
+      </a>
+    </nav>
+
+    <article class="doc__body">
+      <p class="eyebrow">Policy</p>
+      <h1 class="doc__title">{policy.title}</h1>
+      <p class="doc__intro">{policy.intro}</p>
+      <p class="doc__updated">Last updated {updated}</p>
+
+      {
+        policy.sections.map((s) => (
+          <section class="doc__section">
+            <h2 class="doc__h2">{s.heading}</h2>
+            {s.paragraphs.map((p) => <p>{p}</p>)}
+            {s.list && (
+              <ul class="doc__list">
+                {s.list.map((li) => <li>{li}</li>)}
+              </ul>
+            )}
+          </section>
+        ))
+      }
+
+      <footer class="doc__foot">
+        <p>
+          Anything here unclear, or a situation it does not cover? Message us on WhatsApp at{" "}
+          <a href={whatsappLink("I have a question about your policies.")}>{SITE.phoneDisplay}</a>{" "}
+          or write to <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. A person answers.
+        </p>
+      </footer>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .doc {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: clamp(1.5rem, 5vw, 4.5rem);
+    padding-block: clamp(2rem, 5vw, 4rem) var(--section-y);
+    align-items: start;
+  }
+
+  /* --- side nav --------------------------------------------------------- */
+  .doc__side {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .doc__side-head {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .doc__side ul {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .doc__side li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .doc__side a {
+    display: block;
+    padding: 0.65rem 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    transition: color 0.25s var(--ease), padding-left 0.3s var(--ease);
+  }
+
+  .doc__side a:hover {
+    color: var(--wine);
+    padding-left: 4px;
+  }
+
+  .doc__side a[aria-current="page"] {
+    color: var(--wine);
+    font-weight: 500;
+  }
+
+  .doc__side-wa {
+    justify-self: start;
+  }
+
+  /* --- body ------------------------------------------------------------- */
+  .doc__body {
+    max-width: 68ch;
+  }
+
+  .doc__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+    margin: 0.4rem 0 0.8rem;
+  }
+
+  .doc__intro {
+    font-size: var(--step-1);
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .doc__updated {
+    margin-top: 0.8rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .doc__section {
+    margin-top: 2.2rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .doc__h2 {
+    font-size: var(--step-2);
+    font-weight: 300;
+    margin-bottom: 0.7rem;
+  }
+
+  .doc__section p {
+    color: var(--ink-soft);
+    font-weight: 300;
+    line-height: 1.8;
+    margin-bottom: 0.8rem;
+  }
+
+  .doc__list {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+  }
+
+  .doc__list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  .doc__list li::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    rotate: 45deg;
+    background: var(--gold);
+    margin-top: 0.6rem;
+  }
+
+  .doc__foot {
+    margin-top: 2.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--bg-sunk);
+    border-left: 2px solid var(--gold);
+  }
+
+  .doc__foot p {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  .doc__foot a {
+    color: var(--wine);
+    border-bottom: 1px solid currentColor;
+  }
+
+  @media (max-width: 860px) {
+    .doc {
+      grid-template-columns: 1fr;
+    }
+    .doc__side {
+      position: static;
+    }
+  }
+</style>

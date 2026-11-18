@@ -1,0 +1,34 @@
+---
+interface Props {
+  value: number;
+  count?: number;
+  /** Hide the numeric tail on tight layouts. */
+  compact?: boolean;
+}
+const { value, count, compact = false } = Astro.props;
+const pct = Math.max(0, Math.min(100, (value / 5) * 100));
+---
+
+<span class="stars" title={`${value.toFixed(1)} out of 5`}>
+  <span class="stars__glyphs" aria-hidden="true">
+    ★★★★★
+    <span class="stars__fill" style={`width:${pct}%`}>★★★★★</span>
+  </span>
+  <span class="stars__label">
+    {value.toFixed(1)}
+    {count !== undefined && !compact && <span class="stars__count">({count})</span>}
+  </span>
+  <span class="visually-hidden">
+    Rated {value.toFixed(1)} out of 5{count !== undefined ? ` from ${count} reviews` : ""}
+  </span>
+</span>
+
+<style>
+  .stars__label {
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stars__count {
+    color: var(--ink-faint);
+  }
+</style>

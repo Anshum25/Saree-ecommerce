@@ -1,0 +1,140 @@
+---
+import { PRODUCTS, defaultVariant } from "@jaiisha/catalogue";
+import { SITE } from "../lib/site.ts";
+
+/**
+ * Placeholder Instagram grid built from catalogue imagery.
+ *
+ * TO CONNECT THE REAL FEED: the Next.js API exposes GET /api/instagram, which
+ * is where an Instagram Graph API call (or a cached nightly fetch) belongs.
+ * Replace `tiles` below with a fetch of that endpoint at build time.
+ */
+const tiles = [
+  { src: "/img/culture/bride-royal.jpg", alt: "Royal bridal Banarasi drape", caption: "The Saubhagya Bridal Katan in pure vermilion and gold zari" },
+  { src: "/img/culture/weaver-at-loom.jpg", alt: "Master weaver at pit loom in Varanasi", caption: "Off the pit loom in Madanpura: three weeks of kadwa work" },
+  { src: "/img/products/kadwa-buta-bridal-katan-maroon-model.jpg", alt: "Maroon Bridal Katan Silk Saree", caption: "Woven for life's most sacred moments" },
+  { src: "/img/culture/varanasi-ghats.jpg", alt: "Varanasi ghats on the Ganges", caption: "Six centuries of handloom heritage along the river" },
+  { src: "/img/products/diwali-tissue-silk-gold-model.jpg", alt: "Diwali Metallic Tissue Silk Saree", caption: "Shimmering antique gold tissue catching evening lamps" },
+  { src: "/img/culture/ganga-aarti.jpg", alt: "Ganga Aarti ceremony at dusk in Varanasi", caption: "Real zari thread reflecting sacred flame" },
+];
+---
+
+<section class="ig section section--sunk" aria-labelledby="ig-title">
+  <div class="shell">
+    <div class="section-head section-head--center">
+      <p class="eyebrow">{SITE.instagramHandle}</p>
+      <h2 class="ig__title" id="ig-title">From the loom and the lens</h2>
+      <p class="ig__note">New pieces, weaving clips and customer drapes, posted as they happen.</p>
+    </div>
+
+    <ul class="ig__grid">
+      {
+        tiles.map((t) => (
+          <li>
+            <a class="ig__tile" href={SITE.instagram} target="_blank" rel="noopener noreferrer">
+              <img src={t.src} alt={t.alt} width="1200" height="1600" loading="lazy" decoding="async" />
+              <span class="ig__overlay">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="17" cy="7" r="1.2" fill="currentColor" />
+                </svg>
+                <span class="ig__caption">{t.caption}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="ig__cta">
+      <a class="btn btn--ghost" href={SITE.instagram} target="_blank" rel="noopener noreferrer">
+        Follow {SITE.instagramHandle}
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ig__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+  }
+
+  .ig__note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+
+  .ig__grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(0.4rem, 1vw, 0.75rem);
+  }
+
+  .ig__tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--dark);
+  }
+
+  .ig__tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 0.9s var(--ease-out-soft), filter 0.5s var(--ease);
+  }
+
+  .ig__tile:hover img {
+    scale: 1.08;
+    filter: brightness(0.6);
+  }
+
+  .ig__overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--ivory);
+    opacity: 0;
+    transition: opacity 0.45s var(--ease);
+  }
+
+  .ig__tile:hover .ig__overlay {
+    opacity: 1;
+  }
+
+  .ig__overlay svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .ig__caption {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-family: var(--font-italic);
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  .ig__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  @media (max-width: 860px) {
+    .ig__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ig__caption {
+      display: none;
+    }
+  }
+</style>

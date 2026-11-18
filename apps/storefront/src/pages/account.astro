@@ -1,0 +1,19 @@
+---
+import Base from "../layouts/Base.astro";
+import ComingSoon from "../components/ComingSoon.astro";
+import { SITE } from "../lib/site.ts";
+---
+
+<Base
+  title={`Your Account | ${SITE.name}`}
+  description="Customer accounts arrive with online checkout. Until then your orders are handled personally on WhatsApp."
+  canonicalPath="/account"
+>
+  <ComingSoon
+    eyebrow="Accounts"
+    title="Accounts open with checkout"
+    body="There is no sign-in yet, and we would rather say so than show you an empty login screen. Your wishlist and bag are saved in this browser in the meantime, on this device."
+    meanwhile="Message us and we will keep a written record of what you have looked at, what is reserved for you, and what is on the loom."
+    waMessage="Hello JAIISHA, could you keep a record of the sarees I am interested in?"
+  />
+</Base>

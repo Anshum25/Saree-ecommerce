@@ -1,0 +1,205 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import TrustStrip from "../components/TrustStrip.astro";
+import WhySaree from "../components/WhySaree.astro";
+import TraditionGallery from "../components/TraditionGallery.astro";
+import OccasionGrid from "../components/OccasionGrid.astro";
+import ColourRail from "../components/ColourRail.astro";
+import Craftsmanship from "../components/Craftsmanship.astro";
+import Reviews from "../components/Reviews.astro";
+import InstagramStrip from "../components/InstagramStrip.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { bestsellers, newArrivals } from "@jaiisha/catalogue";
+import { SITE } from "../lib/site.ts";
+
+const best = bestsellers(8);
+const fresh = newArrivals(4);
+---
+
+<Base
+  title={`${SITE.name} — Handwoven Banarasi Silk Sarees from Varanasi`}
+  description="JAIISHA is a Banarasi silk boutique: handloom Katan, kadwa bridal, organza and tissue sarees woven in Varanasi. Shop by occasion and colour, or order on WhatsApp."
+  overHero
+  image="/img/culture/bride-portrait.jpg"
+  preloadImage="/img/culture/bride-portrait.jpg"
+  canonicalPath="/"
+>
+  <Hero />
+  <TrustStrip />
+  <WhySaree />
+  <TraditionGallery />
+  <OccasionGrid />
+
+  <!-- Bestsellers -->
+  <section class="feat section" aria-labelledby="best-title">
+    <div class="shell">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Most asked for</p>
+          <h2 class="feat__title" id="best-title">Bestsellers</h2>
+        </div>
+        <a class="link link--draw" href="/sarees?sort=bestsellers">
+          View all sarees
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="feat__arrow"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+        </a>
+      </div>
+
+      <div class="feat__grid">
+        {best.map((p, i) => <ProductCard product={p} priority={i < 4} />)}
+      </div>
+    </div>
+  </section>
+
+  <ColourRail />
+  <Craftsmanship />
+
+  <!-- New arrivals -->
+  <section class="feat section section--sunk" aria-labelledby="new-title">
+    <div class="shell">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Off the loom this month</p>
+          <h2 class="feat__title" id="new-title">New arrivals</h2>
+        </div>
+        <a class="link link--draw" href="/sarees?sort=newest">
+          See everything new
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="feat__arrow"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+        </a>
+      </div>
+
+      <div class="feat__grid">
+        {fresh.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Help choosing: the boutique's real differentiator -->
+  <section class="help section" aria-labelledby="help-title">
+    <div class="shell help__inner">
+      <div class="help__text">
+        <p class="eyebrow">Not sure which one</p>
+        <h2 class="help__title" id="help-title">
+          Tell us the occasion. We will send you three.
+        </h2>
+        <p class="lede">
+          Message us what the saree is for, the colour you have in mind and your budget. We send
+          photographs and short clips of three pieces from the shelf, in daylight and in lamp
+          light, so you can judge the colour the way you would in a shop.
+        </p>
+        <div class="help__actions">
+          <a
+            class="btn btn--wa"
+            href={`https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent("Hello JAIISHA, I need a saree for: \nColour: \nBudget: ")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ask on WhatsApp
+          </a>
+          <a class="btn btn--ghost" href="/contact">Book a video call</a>
+        </div>
+      </div>
+
+      <ol class="help__steps">
+        <li><span>1</span> Tell us the occasion, colour and budget</li>
+        <li><span>2</span> We send three options, with video</li>
+        <li><span>3</span> Confirm, and it ships the same day</li>
+      </ol>
+    </div>
+  </section>
+
+  <Reviews />
+  <InstagramStrip />
+</Base>
+
+<style>
+  .feat__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    margin-top: 0.5rem;
+  }
+
+  .feat__arrow {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .feat__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2.2vw, 2rem) clamp(0.8rem, 1.6vw, 1.5rem);
+  }
+
+  @media (max-width: 1000px) {
+    .feat__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .feat__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* --- help section ----------------------------------------------------- */
+  .help__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+    padding: clamp(1.8rem, 4vw, 3.5rem);
+    background:
+      linear-gradient(135deg, rgba(181, 138, 67, 0.1), rgba(101, 29, 53, 0.06)),
+      var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .help__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    margin: 0.5rem 0 0.9rem;
+    max-width: 26ch;
+  }
+
+  .help__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.6rem;
+  }
+
+  .help__steps {
+    display: grid;
+    gap: 0.9rem;
+    counter-reset: step;
+  }
+
+  .help__steps li {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    background: var(--bg-sunk);
+    font-size: 0.9rem;
+  }
+
+  .help__steps span {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--wine);
+    color: var(--ivory);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 860px) {
+    .help__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

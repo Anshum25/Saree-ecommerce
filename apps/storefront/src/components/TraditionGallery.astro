@@ -1,0 +1,237 @@
+---
+/**
+ * Tradition & culture.
+ *
+ * Editorial photography, not product shots — the city the silk comes from, the
+ * loom it is made on, the rituals it is worn to. Every image is licensed under
+ * the Unsplash Licence (free for commercial use, no attribution required);
+ * sources are listed in the README.
+ *
+ * These are stand-ins for JAIISHA's own photography. When you shoot your own
+ * weavers and customers, replace the files in /img/culture under the same
+ * names and nothing here changes.
+ */
+
+const plates = [
+  {
+    src: "/img/culture/varanasi-ghats.jpg",
+    alt: "Boats on the Ganges before the ancient stone ghats and temples of Varanasi",
+    kicker: "The Sacred City",
+    caption: "Varanasi & The Holy Ghats",
+    body: "Silk has been woven on the lanes behind these ghats since the Mughal karkhanas. The weaving mohallas — Madanpura, Lallapura, Alaipura — sit a few hundred metres from the sacred river.",
+    span: "tall",
+  },
+  {
+    src: "/img/culture/bride-royal.jpg",
+    alt: "A bride in opulent red and gold Banarasi Katan silk with royal kundan jewellery",
+    kicker: "The Auspicious Bride",
+    caption: "Saubhagya & Pure Vermilion",
+    body: "A bride's Banarasi is woven to outlive the wedding ceremony — folded in pure muslin, refolded with cloves, and passed to a daughter as an unbroken family heirloom.",
+    span: "wide",
+  },
+  {
+    src: "/img/culture/ganga-aarti.jpg",
+    alt: "Priests performing the Ganga aarti with tiered golden oil lamps at dusk in Varanasi",
+    kicker: "The Sacred Ritual",
+    caption: "Lamp Light, Not Bulb Light",
+    body: "Pure silver zari was forged for flame: real metallic thread catching sacred diya fire. It is the reason a Banarasi glows with warm majesty during evening ceremonies.",
+    span: "tall",
+  },
+  {
+    src: "/img/culture/weaver-at-loom.jpg",
+    alt: "Master artisan weaver bent over a traditional pit handloom in Varanasi",
+    kicker: "The Master Artisans",
+    caption: "Two Weavers, Three Weeks",
+    body: "One throws the flying shuttle, one lifts the jacquard cards. Kadwa work moves a few inches a day. This is the whole of why authentic handloom costs what it does.",
+    span: "wide",
+  },
+  {
+    src: "/img/culture/loom-detail.jpg",
+    alt: "Intricate warp and weft threads dressed by hand on a wooden loom",
+    kicker: "The Loom",
+    caption: "Five Thousand Warp Threads",
+    body: "A traditional pit loom dressed entirely by hand. The warp is drawn through the reed thread by thread before a single pick of zari weft is thrown.",
+    span: "wide",
+  },
+  {
+    src: "/img/culture/tradition-festival.jpg",
+    alt: "Women adorned in traditional festive silk sarees celebrating Indian cultural heritage",
+    kicker: "The Living Culture",
+    caption: "Celebrations That Endure",
+    body: "For Diwali, Karwa Chauth, Teej, and sacred family gatherings, the heaviest silk comes out of the almirah — a garment that has graced Indian festivals for over six centuries.",
+    span: "wide",
+  },
+];
+---
+
+<section class="trad section section--dark" aria-labelledby="trad-title">
+  <div class="shell">
+    <div class="trad__head">
+      <p class="eyebrow">Tradition &amp; culture</p>
+      <h2 class="trad__title" id="trad-title">
+        Behind six metres of silk, <em>a city</em>
+      </h2>
+      <p class="lede trad__lede">
+        A Banarasi is not a design that was invented and marketed. It is the output of a place —
+        a river, a set of lanes, a trade handed down through families, and a calendar of
+        occasions that decided what had to be woven and when.
+      </p>
+    </div>
+
+    <ul class="trad__grid">
+      {
+        plates.map((p) => (
+          <li class:list={["trad__cell", `trad__cell--${p.span}`]}>
+            <figure class="plate reveal">
+              <div class="plate__media">
+                <img src={p.src} alt={p.alt} width="1600" height="2400" loading="lazy" decoding="async" />
+              </div>
+              <figcaption class="plate__cap">
+                <p class="plate__kicker">{p.kicker}</p>
+                <h3 class="plate__title">{p.caption}</h3>
+                <p class="plate__body">{p.body}</p>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="trad__note">
+      Photography above is licensed stock, standing in until our own weavers and customers are
+      shot. Every saree photograph on this site is of the actual piece you receive.
+    </p>
+  </div>
+</section>
+
+<style>
+  .trad {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .trad__head {
+    max-width: 58rem;
+    display: grid;
+    gap: 0.9rem;
+    margin-bottom: clamp(2rem, 4vw, 3.2rem);
+  }
+
+  .trad__title {
+    font-size: var(--step-4);
+  }
+
+  .trad__title em {
+    color: var(--gold-light);
+  }
+
+  .trad__lede {
+    color: var(--on-dark-soft);
+  }
+
+  /* --- grid ------------------------------------------------------------ */
+  .trad__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.8rem);
+  }
+
+  .trad__cell {
+    grid-column: span 1;
+  }
+
+  .plate {
+    position: relative;
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--dark-raised);
+    border: 1px solid rgba(246, 239, 228, 0.1);
+    overflow: hidden;
+  }
+
+  .plate__media {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+  }
+
+  .plate__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Pull the stock photography towards the brand palette so the set reads
+       as one house, not a mood board. */
+    filter: saturate(0.92) contrast(1.04) brightness(0.94);
+    transition: scale 1.3s var(--ease-out-soft), filter 0.6s var(--ease);
+  }
+
+  .plate:hover .plate__media img {
+    scale: 1.05;
+    filter: saturate(1) contrast(1.02) brightness(1);
+  }
+
+  /* A wine wash that lifts on hover. */
+  .plate__media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(74, 19, 38, 0.55), rgba(28, 15, 21, 0.1) 70%);
+    transition: opacity 0.6s var(--ease);
+  }
+
+  .plate:hover .plate__media::after {
+    opacity: 0.4;
+  }
+
+  .plate__cap {
+    padding: clamp(0.9rem, 2vw, 1.3rem);
+    display: grid;
+    gap: 0.3rem;
+    flex: 1;
+  }
+
+  .plate__kicker {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .plate__title {
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+
+  .plate__body {
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--on-dark-soft);
+  }
+
+  .trad__note {
+    margin-top: clamp(1.4rem, 3vw, 2.2rem);
+    font-size: 0.76rem;
+    color: rgba(246, 239, 228, 0.45);
+    max-width: 70ch;
+  }
+
+  /* --- responsive ------------------------------------------------------ */
+  @media (max-width: 900px) {
+    .trad__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .trad__grid {
+      grid-template-columns: 1fr;
+    }
+    .plate__media {
+      aspect-ratio: 4 / 3;
+    }
+  }
+</style>

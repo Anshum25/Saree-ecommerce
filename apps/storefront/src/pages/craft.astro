@@ -1,0 +1,646 @@
+---
+import Base from "../layouts/Base.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { queryProducts } from "@jaiisha/catalogue";
+import { SITE, whatsappLink } from "../lib/site.ts";
+
+const handloom = queryProducts({ weave: "handloom", sort: "top-rated", perPage: 4 }).items;
+
+const steps = [
+  {
+    n: "01",
+    title: "The naqsha — the design",
+    body:
+      "A naqshaband draws the motif on graph paper, square by square, then translates it into punched jacquard cards. A dense jangla can run to 1,500 cards, and a single mis-punched hole repeats as a flaw down all six metres.",
+  },
+  {
+    n: "02",
+    title: "Dressing the loom",
+    body:
+      "Five to six thousand silk warp threads are drawn by hand through the reed and the heddles. Two people spend the better part of a week on this before a single pick of weft is thrown.",
+  },
+  {
+    n: "03",
+    title: "Weaving",
+    body:
+      "Two weavers sit at a pit loom, one throwing the shuttle, one lifting the jacquard. Kadwa work — where each motif is woven as a separate piece with no float cut away behind — slows this to a few inches a day.",
+  },
+  {
+    n: "04",
+    title: "Kadhuwa pallu and finishing",
+    body:
+      "The pallu is woven last and heaviest. The saree is then cut from the loom, loose zari secured, the fall checked against light, and the weaver's certificate written out by hand.",
+  },
+];
+
+const tells = [
+  {
+    title: "Turn it over",
+    body:
+      "A kadwa Banarasi has no long float threads across the back of each motif, because every buta was woven separately. Cut threads in neat rows mean cutwork — a cheaper, faster method, which is fine, but should be priced as such.",
+  },
+  {
+    title: "Rub the zari",
+    body:
+      "Pure zari is silver wire, gold-plated, wound on silk. It stays warm-toned as it ages. Plastic-coated zari looks brighter new and goes grey or flakes within a year or two.",
+  },
+  {
+    title: "Weigh it in your hand",
+    body:
+      "A pure Katan silk saree with real zari weighs 700–1,000 grams. Anything under 400 grams claiming to be heavy Katan is blended, or is organza, which should say so.",
+  },
+  {
+    title: "Look for the irregularity",
+    body:
+      "Handloom has tiny unevenness in the weft — proof a person made it. A perfectly uniform surface across six metres is a powerloom, which again is fine, as long as it is declared.",
+  },
+];
+
+const careSteps = [
+  "Dry clean only, and tell the cleaner it is zari work. Never use water on the zari.",
+  "Store folded in a muslin or cotton cloth. Plastic traps moisture and tarnishes the zari.",
+  "Refold along a different line every three months so the creases do not become cracks.",
+  "Keep away from naphthalene balls and from perfume sprayed directly on the silk.",
+  "Hang it on a padded hanger for a day after wearing to let the drape settle, then fold it away.",
+];
+
+const drapeSteps = [
+  { label: "Tuck", body: "Start at the navel, tuck the plain end into the petticoat, right to left, keeping the lower border level with the floor." },
+  { label: "One full round", body: "Take it once around, then pleat five to seven even pleats of about four fingers each and tuck them slightly left of centre." },
+  { label: "The pallu", body: "Bring the remaining length around once more and take the pallu over the left shoulder. On a heavy Katan, pin at the shoulder before you let go." },
+  { label: "Set the length", body: "The pallu should reach the back of the knee for a traditional drape, or the calf if you intend to pleat it." },
+];
+---
+
+<Base
+  title={`Our Craft — How a Banarasi Saree Is Woven | ${SITE.name}`}
+  description="How a Banarasi silk saree is actually made: the naqsha, the warp, the pit loom and the kadhuwa pallu. Plus how to tell a real handloom Banarasi from a powerloom one, and how to care for it."
+  canonicalPath="/craft"
+>
+  <!-- ===================== intro ===================== -->
+  <header class="chead">
+    <div class="shell chead__inner">
+      <p class="eyebrow">Our craft</p>
+      <h1 class="chead__title">
+        Varanasi has been weaving figured silk<br />
+        for roughly six hundred years
+      </h1>
+      <p class="chead__lede">
+        The method has barely changed. A design punched into cards, a warp dressed by hand, two
+        people at a pit loom for weeks. What follows is exactly how the sarees on this site are
+        made, who makes them, and how to tell when someone is selling you something else.
+      </p>
+      <nav class="chead__jump" aria-label="On this page">
+        <a href="#how">How it is woven</a>
+        <a href="#weavers">The weavers</a>
+        <a href="#real">Telling real from not</a>
+        <a href="#care">Care</a>
+        <a href="#drape">How to drape</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== how ===================== -->
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow">From graph paper to pallu</p>
+        <h2 class="c-title" id="how-title">Four weeks, four stages</h2>
+      </div>
+
+      <ol class="steps">
+        {
+          steps.map((s) => (
+            <li class="steps__item reveal">
+              <span class="steps__n" aria-hidden="true">{s.n}</span>
+              <div>
+                <h3 class="steps__title">{s.title}</h3>
+                <p class="steps__body">{s.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== weavers ===================== -->
+  <section class="section section--dark weavers" id="weavers" aria-labelledby="weavers-title">
+    <div class="shell weavers__inner">
+      <div>
+        <p class="eyebrow">The weavers</p>
+        <h2 class="c-title" id="weavers-title">We buy from the loom, not from a market</h2>
+        <p class="lede">
+          Our sarees come from weaving families in Madanpura and Lallapura, two of the oldest
+          weaving mohallas in Varanasi. We pay per piece at a rate agreed before the warp is
+          dressed, and we pay on delivery rather than on sale, because a weaving family cannot
+          finance our inventory.
+        </p>
+        <p class="weavers__body">
+          The trade has been squeezed from both sides for thirty years — by powerloom copies sold
+          as handloom, and by middlemen holding payment. The only honest answer we have is to name
+          the loom on the certificate and let the price say what it needs to.
+        </p>
+        <a class="btn btn--on-dark" href={whatsappLink("I would like to know more about the weavers JAIISHA works with.")}>
+          Ask us about a specific loom
+        </a>
+      </div>
+
+      <dl class="weavers__facts">
+        <div><dt>Madanpura & Lallapura</dt><dd>The mohallas we buy from</dd></div>
+        <div><dt>Per piece, pre-agreed</dt><dd>How weavers are paid</dd></div>
+        <div><dt>On delivery</dt><dd>When they are paid</dd></div>
+        <div><dt>Named on the box</dt><dd>Which loom wove yours</dd></div>
+      </dl>
+    </div>
+
+    <!-- Craft Photo Showcase -->
+    <div class="shell craft-media">
+      <div class="craft-media__grid">
+        <figure class="craft-media__card">
+          <div class="craft-media__img">
+            <img src="/img/culture/weaver-at-loom.jpg" alt="Master artisan weaver working at a traditional pit loom in Varanasi" loading="lazy" />
+          </div>
+          <figcaption class="craft-media__cap">
+            <strong>The Madanpura Loom</strong>
+            <span>Pit loom Kadwa brocade taking 3 weeks per saree</span>
+          </figcaption>
+        </figure>
+        <figure class="craft-media__card">
+          <div class="craft-media__img">
+            <img src="/img/culture/loom-detail.jpg" alt="Five thousand hand-dressed silk warp threads and golden zari" loading="lazy" />
+          </div>
+          <figcaption class="craft-media__cap">
+            <strong>The Hand-Dressed Warp</strong>
+            <span>Over 5,000 pure silk threads drawn thread-by-thread</span>
+          </figcaption>
+        </figure>
+        <figure class="craft-media__card">
+          <div class="craft-media__img">
+            <img src="/img/culture/varanasi-ghats.jpg" alt="Historic stone ghats and temples of Varanasi on the Ganges" loading="lazy" />
+          </div>
+          <figcaption class="craft-media__cap">
+            <strong>The Sacred City</strong>
+            <span>Where six centuries of royal weaving tradition began</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== real vs not ===================== -->
+  <section class="section" id="real" aria-labelledby="real-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow">Buy well, anywhere</p>
+        <h2 class="c-title" id="real-title">Four ways to tell a real Banarasi</h2>
+        <p class="lede">
+          This is the advice we would give you in the shop, and it works whether or not you buy
+          from us.
+        </p>
+      </div>
+
+      <ul class="tells">
+        {
+          tells.map((t) => (
+            <li class="tells__item reveal">
+              <h3 class="tells__title">{t.title}</h3>
+              <p class="tells__body">{t.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="note">
+        Every JAIISHA listing states the weave — handloom, semi-handloom or powerloom — and the
+        zari type, in plain words. If a listing anywhere says only "Banarasi silk" with no weave
+        and no zari named, ask before you buy.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== handloom shelf ===================== -->
+  <section class="section section--sunk" aria-labelledby="hl-title">
+    <div class="shell">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Woven by hand</p>
+          <h2 class="c-title" id="hl-title">Our handloom pieces</h2>
+        </div>
+        <a class="link link--draw" href="/sarees?weave=handloom">See all handloom</a>
+      </div>
+      <div class="shelf">
+        {handloom.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== care ===================== -->
+  <section class="section" id="care" aria-labelledby="care-title">
+    <div class="shell care-grid">
+      <div>
+        <p class="eyebrow">Saree care</p>
+        <h2 class="c-title" id="care-title">How to keep it for thirty years</h2>
+        <p class="lede">
+          Silk fails from storage, not from wearing. Five habits are the whole of it.
+        </p>
+      </div>
+      <ol class="care-list">
+        {careSteps.map((c) => <li>{c}</li>)}
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== drape ===================== -->
+  <section class="section section--sunk" id="drape" aria-labelledby="drape-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow">How to drape</p>
+        <h2 class="c-title" id="drape-title">The nivi drape, in four moves</h2>
+        <p class="lede">
+          This is the standard drape and the one these sarees are cut for. A heavy Katan wants one
+          extra pin at the shoulder; an organza wants none.
+        </p>
+      </div>
+      <ol class="drape">
+        {
+          drapeSteps.map((d, i) => (
+            <li class="drape__item reveal">
+              <span class="drape__n">{i + 1}</span>
+              <h3 class="drape__label">{d.label}</h3>
+              <p class="drape__body">{d.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="note">
+        Prefer to be shown? We will send a two-minute video for the exact saree you are buying.
+        <a href={whatsappLink("Could you send me a draping video?")}>Ask on WhatsApp</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* --- head ------------------------------------------------------------- */
+  .chead {
+    padding-block: clamp(2.5rem, 7vw, 5.5rem);
+    background:
+      radial-gradient(70% 60% at 80% 10%, rgba(181, 138, 67, 0.12), transparent 70%),
+      var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .chead__inner {
+    display: grid;
+    gap: 1rem;
+    max-width: 62rem;
+  }
+
+  .chead__title {
+    font-size: var(--step-4);
+    font-weight: 300;
+  }
+
+  .chead__lede {
+    max-width: 64ch;
+    font-size: var(--step-1);
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .chead__jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+
+  .chead__jump a {
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    font-size: 0.76rem;
+    transition: background-color 0.3s var(--ease), color 0.3s var(--ease),
+      border-color 0.3s var(--ease);
+  }
+
+  .chead__jump a:hover {
+    background: var(--wine);
+    border-color: var(--wine);
+    color: var(--ivory);
+  }
+
+  .c-title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    margin-top: 0.4rem;
+  }
+
+  /* --- steps ------------------------------------------------------------ */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .steps__item {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 1.2rem;
+    padding: clamp(1.3rem, 3vw, 2.2rem) clamp(1rem, 2.5vw, 2rem) clamp(1.3rem, 3vw, 2.2rem) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .steps__item:nth-child(odd) {
+    border-right: 1px solid var(--line);
+    padding-right: clamp(1rem, 2.5vw, 2.5rem);
+  }
+
+  .steps__item:nth-child(even) {
+    padding-left: clamp(1rem, 2.5vw, 2.5rem);
+  }
+
+  .steps__n {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .steps__title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.3rem;
+  }
+
+  .steps__body {
+    color: var(--ink-soft);
+    font-weight: 300;
+    font-size: 0.92rem;
+    max-width: 52ch;
+  }
+
+  /* --- weavers ---------------------------------------------------------- */
+  .weavers__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .weavers .lede {
+    margin-bottom: 1rem;
+  }
+
+  .weavers__body {
+    color: var(--on-dark-soft);
+    font-weight: 300;
+    max-width: 60ch;
+    margin-bottom: 1.6rem;
+  }
+
+  .weavers__facts {
+    display: grid;
+    gap: 1.2rem;
+    margin: 0;
+    padding-left: clamp(1rem, 3vw, 2.5rem);
+    border-left: 1px solid rgba(181, 138, 67, 0.4);
+  }
+
+  .weavers__facts dt {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--gold-light);
+  }
+
+  .weavers__facts dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(246, 239, 228, 0.6);
+  }
+
+  /* --- craft media showcase --------------------------------------------- */
+  .craft-media {
+    margin-top: 3.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgba(246, 239, 228, 0.12);
+  }
+
+  .craft-media__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .craft-media__card {
+    margin: 0;
+    background: var(--dark-raised);
+    border: 1px solid rgba(181, 138, 67, 0.25);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+  }
+
+  .craft-media__img {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+  }
+
+  .craft-media__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease);
+  }
+
+  .craft-media__card:hover .craft-media__img img {
+    transform: scale(1.06);
+  }
+
+  .craft-media__cap {
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .craft-media__cap strong {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--gold-light);
+  }
+
+  .craft-media__cap span {
+    font-size: 0.78rem;
+    color: var(--on-dark-soft);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 768px) {
+    .craft-media__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* --- tells ------------------------------------------------------------ */
+  .tells {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.8rem);
+  }
+
+  .tells__item {
+    padding: clamp(1.1rem, 2.5vw, 1.8rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+  }
+
+  .tells__title {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+  }
+
+  .tells__body {
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+
+  .note {
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    padding: 1rem 1.2rem;
+    background: var(--bg-sunk);
+    border-left: 2px solid var(--gold);
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    max-width: 80ch;
+  }
+
+  .note a {
+    color: var(--wine);
+    border-bottom: 1px solid currentColor;
+  }
+
+  /* --- shelf ------------------------------------------------------------ */
+  .shelf {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.8rem) clamp(0.8rem, 1.6vw, 1.4rem);
+  }
+
+  /* --- care ------------------------------------------------------------- */
+  .care-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .care-list {
+    display: grid;
+    gap: 0;
+    counter-reset: care;
+    border-top: 1px solid var(--line);
+  }
+
+  .care-list li {
+    counter-increment: care;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 1rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  .care-list li::before {
+    content: counter(care, decimal-leading-zero);
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--gold);
+  }
+
+  /* --- drape ------------------------------------------------------------ */
+  .drape {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(0.8rem, 2vw, 1.5rem);
+  }
+
+  .drape__item {
+    padding: clamp(1.1rem, 2.5vw, 1.6rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .drape__n {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--wine);
+    color: var(--ivory);
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+  }
+
+  .drape__label {
+    font-size: var(--step-1);
+    font-weight: 400;
+    margin-bottom: 0.25rem;
+  }
+
+  .drape__body {
+    font-size: 0.86rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  /* --- responsive ------------------------------------------------------- */
+  @media (max-width: 1000px) {
+    .tells,
+    .drape,
+    .shelf {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .weavers__inner,
+    .care-grid {
+      grid-template-columns: 1fr;
+    }
+    .weavers__facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-left: 0;
+      padding-top: 1.5rem;
+      border-left: 0;
+      border-top: 1px solid rgba(181, 138, 67, 0.4);
+    }
+  }
+
+  @media (max-width: 680px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+    .steps__item:nth-child(odd) {
+      border-right: 0;
+      padding-right: 0;
+    }
+    .steps__item:nth-child(even) {
+      padding-left: 0;
+    }
+    .tells,
+    .drape {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

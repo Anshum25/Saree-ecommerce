@@ -1,0 +1,257 @@
+---
+import { OCCASIONS, queryProducts } from "@jaiisha/catalogue";
+
+/**
+ * Shop by occasion — but each card carries the tradition behind the occasion,
+ * so the customer is being guided rather than merchandised at.
+ */
+/**
+ * Cards use editorial photography of the occasion itself — a bride, diyas, a
+ * pooja tray — rather than a product shot. The occasion is the subject here;
+ * the sarees are one click away.
+ */
+const cards = OCCASIONS.map((o) => ({
+  ...o,
+  count: queryProducts({ occasion: o.slug, perPage: 999 }).total,
+}));
+---
+
+<section class="occ section section--sunk" aria-labelledby="occ-title">
+  <div class="shell">
+    <div class="section-head section-head--split">
+      <div>
+        <p class="eyebrow">Shop by occasion</p>
+        <h2 class="occ__title" id="occ-title">The day decides the saree</h2>
+      </div>
+      <p class="occ__note">
+        Weight, length, zari and colour are all answers to a question: what is this saree for?
+        Start from the occasion and the choice narrows itself.
+      </p>
+    </div>
+
+    <ul class="occ__grid">
+      {
+        cards.map((c, i) => (
+          <li class:list={["occ__cell", i === 0 && "occ__cell--lead"]}>
+            <a class="occ__card reveal" href={`/occasion/${c.slug}`} style={`--accent:${c.accent}`}>
+              <div class="occ__media">
+                <img
+                  src={c.image}
+                  alt={c.imageAlt}
+                  width="1600"
+                  height="2400"
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+                <span class="occ__scrim" aria-hidden="true"></span>
+              </div>
+
+              <div class="occ__content">
+                <h3 class="occ__name">{c.name}</h3>
+                <p class="occ__blurb">{c.blurb}</p>
+                <p class="occ__tradition">{c.tradition}</p>
+                <span class="occ__cta">
+                  {c.count} {c.count === 1 ? "saree" : "sarees"}
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+                </span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .occ__title {
+    font-size: var(--step-3);
+    font-weight: 300;
+    margin-top: 0.5rem;
+  }
+
+  .occ__note {
+    max-width: 34ch;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+
+  /* Editorial asymmetry: the lead card spans two columns and two rows. */
+  .occ__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(0.7rem, 1.4vw, 1.1rem);
+  }
+
+  .occ__cell--lead {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .occ__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    min-height: 15rem;
+    padding: clamp(1rem, 2vw, 1.6rem);
+    overflow: hidden;
+    color: var(--on-dark);
+    border-radius: var(--r-sm);
+    isolation: isolate;
+  }
+
+  .occ__cell--lead .occ__card {
+    min-height: 32rem;
+  }
+
+  /* --- media ----------------------------------------------------------- */
+  .occ__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent);
+  }
+
+  .occ__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 1.4s var(--ease-out-soft);
+  }
+
+  .occ__card:hover .occ__media img {
+    scale: 1.06;
+  }
+
+  .occ__media-fallback {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(150deg, var(--accent), #1c0f15);
+  }
+
+  .occ__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(20, 9, 14, 0.92) 0%,
+      rgba(20, 9, 14, 0.6) 38%,
+      rgba(20, 9, 14, 0.12) 80%
+    );
+    transition: background 0.6s var(--ease);
+  }
+
+  .occ__card:hover .occ__scrim {
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--accent) 72%, #0d0508) 0%,
+      rgba(20, 9, 14, 0.66) 55%,
+      rgba(20, 9, 14, 0.2) 100%
+    );
+  }
+
+  /* --- content --------------------------------------------------------- */
+  .occ__content {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .occ__name {
+    font-size: var(--step-2);
+    font-weight: 400;
+  }
+
+  .occ__cell--lead .occ__name {
+    font-size: var(--step-3);
+  }
+
+  .occ__blurb {
+    font-size: 0.84rem;
+    color: rgba(246, 239, 228, 0.78);
+    font-weight: 300;
+  }
+
+  /* The tradition note is the reward for hovering — it would crowd the card
+     if it were always visible, so it expands in. */
+  .occ__tradition {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    font-weight: 300;
+    color: rgba(246, 239, 228, 0.86);
+    max-width: 48ch;
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.55s var(--ease-out-soft), opacity 0.45s var(--ease),
+      margin-top 0.55s var(--ease-out-soft);
+    overflow: hidden;
+  }
+
+  .occ__card:hover .occ__tradition,
+  .occ__card:focus-visible .occ__tradition {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 0.4rem;
+  }
+
+  /* The lead card has room to show it outright. */
+  .occ__cell--lead .occ__tradition {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 0.4rem;
+  }
+
+  .occ__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .occ__cta svg {
+    width: 1rem;
+    height: 1rem;
+    transition: translate 0.4s var(--ease);
+  }
+
+  .occ__card:hover .occ__cta svg {
+    translate: 5px 0;
+  }
+
+  /* --- responsive ------------------------------------------------------ */
+  @media (max-width: 900px) {
+    .occ__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .occ__cell--lead {
+      grid-column: span 2;
+      grid-row: span 1;
+    }
+    .occ__cell--lead .occ__card {
+      min-height: 22rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .occ__grid {
+      grid-template-columns: 1fr;
+    }
+    .occ__cell--lead {
+      grid-column: span 1;
+    }
+    /* On a phone nobody hovers, so show the tradition note. */
+    .occ__tradition {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 0.4rem;
+    }
+  }
+</style>

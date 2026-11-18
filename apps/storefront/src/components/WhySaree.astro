@@ -1,0 +1,491 @@
+---
+/**
+ * The cultural argument, and the house's intention.
+ *
+ * This is the section that separates a boutique from a marketplace. It was
+ * previously five paragraphs of text with a strip of photographs bolted on
+ * underneath, so the imagery illustrated nothing in particular and the
+ * reasoning read as a wall.
+ *
+ * Now each reason is a chapter: one photograph, the tradition it belongs to,
+ * and — the part that was missing — what JAIISHA actually does about it. A
+ * claim about heritage means very little without the commitment that follows
+ * from it, so every chapter ends with one.
+ *
+ * Each photograph declares its own orientation rather than being forced into a
+ * shared aspect ratio, because cropping a wide loom shot to a portrait frame
+ * throws away the part that makes it worth showing.
+ */
+
+const reasons = [
+  {
+    no: "01",
+    deva: "अखण्ड",
+    title: "Unstitched, and therefore whole",
+    body:
+      "Classical Indian dress avoided the needle. Cloth that had not been cut was considered pure enough for a temple, a ritual and a wedding, which is why the saree, the dhoti and the angavastram all survived while stitched court dress came and went.",
+    commitment:
+      "So we sell it as it leaves the loom — uncut, 5.5 or 6.3 metres, blouse piece still attached. Nothing is trimmed to make a parcel cheaper to post.",
+    image: "/img/culture/loom-detail.jpg",
+    alt: "Uncut cloth and warp threads running through the reed of a wooden handloom",
+    caption: "Cloth, still on the loom",
+    orient: "landscape",
+  },
+  {
+    no: "02",
+    deva: "रंग",
+    title: "The colour speaks before you do",
+    body:
+      "Red and maroon for a bride and for saubhagya. Ivory and gold for a pooja. Green for a new beginning and for Teej. Yellow for haldi. A woman walking into a room in the right colour has already said the right thing.",
+    commitment:
+      "So every listing names its true shade, not a marketing name. If the colour has to be exact, we send a video of that actual piece in daylight and in lamp light before you pay.",
+    image: "/img/culture/tradition-festival.jpg",
+    alt: "Two women in red and emerald Banarasi silk sarees with gold zari borders",
+    caption: "Rani red and emerald, as they are worn",
+    orient: "portrait",
+  },
+  {
+    no: "03",
+    deva: "विरासत",
+    title: "It is inherited, not replaced",
+    body:
+      "A Banarasi outlives the occasion it was bought for. It is folded into muslin, refolded every few months, and handed over at a daughter's wedding. Very few garments in the world are bought with the next generation in mind.",
+    commitment:
+      "So we weave for thirty years, not for a season: pure Katan, gold-plated silver zari, and a care card in the box that tells you how to fold it so the creases never become cracks.",
+    image: "/img/culture/bride-alt.jpg",
+    alt: "A bride in red and gold, eyes lowered, wearing heavy traditional gold jewellery",
+    caption: "Bought once, kept for a daughter",
+    orient: "portrait",
+  },
+  {
+    no: "04",
+    deva: "अवसर",
+    title: "The occasion chooses the weave",
+    body:
+      "A kadwa Katan for a wedding, a tissue for Diwali lamps, an ivory Katan for a griha pravesh, a light organza for a reception you will dance at. Weight, length and zari are not style choices so much as answers to the day.",
+    commitment:
+      "So the shop is arranged by occasion before anything else. Tell us the day and we will narrow six centuries of weaving down to three sarees.",
+    image: "/img/culture/pooja-lamps.jpg",
+    alt: "A brass thali of lit clay diyas surrounded by scattered flower petals",
+    caption: "The day decides the cloth",
+    orient: "landscape",
+  },
+  {
+    no: "05",
+    deva: "हाथ",
+    title: "Someone's hands are in it",
+    body:
+      "A handloom Banarasi takes two to four weeks on a pit loom in Varanasi, worked by a family that has done this for generations. Buying one keeps a loom running — which is the honest reason handloom costs what it does.",
+    commitment:
+      "So we buy direct from weaving families in Madanpura and Lallapura, pay per piece at a rate agreed before the warp is dressed, and name the loom on the certificate in your box.",
+    image: "/img/culture/weaver-at-loom.jpg",
+    alt: "A weaver at a large loom, golden warp threads radiating out across the frame",
+    caption: "Four weeks of one person's work",
+    orient: "portrait",
+  },
+];
+---
+
+<section class="why section" id="why" aria-labelledby="why-title">
+  <div class="shell">
+    <!-- ================= head ================= -->
+    <div class="why__head">
+      <p class="eyebrow">Why the saree endures</p>
+      <h2 class="why__title" id="why-title">
+        Not a dress that came back into fashion.<br />
+        <em class="why__title-em">One that never left.</em>
+      </h2>
+      <p class="lede why__lede">
+        Six yards of cloth, a tradition older than most countries, and a set of quiet rules every
+        Indian family knows by heart. Here is what they are, and what each one obliges us to do.
+      </p>
+    </div>
+
+    <!-- ================= intention ================= -->
+    <aside class="intent reveal" aria-labelledby="intent-title">
+      <p class="intent__kicker">Our intention</p>
+      <h3 class="intent__title" id="intent-title">
+        We would rather explain a saree than sell one
+      </h3>
+      <p class="intent__body">
+        Most people buying a Banarasi are buying blind — told it is <em>pure silk</em>, with no
+        weave named, no zari named and no weaver named. JAIISHA exists to end that one listing at
+        a time: we state the weave in plain words, price handloom as handloom and powerloom as
+        powerloom, and tell you what a saree is <em>for</em> before we tell you what it costs.
+      </p>
+      <p class="intent__sign">
+        Five traditions, and the five promises we make because of them.
+      </p>
+    </aside>
+
+    <!-- ================= chapters ================= -->
+    <ol class="chapters">
+      {
+        reasons.map((r, i) => (
+          <li class:list={["chapter", "reveal", i % 2 === 1 && "chapter--flip"]}>
+            <figure class:list={["chapter__media", `chapter__media--${r.orient}`]}>
+              <div class="chapter__frame">
+                <img src={r.image} alt={r.alt} width="1600" height="1200" loading="lazy" decoding="async" />
+                <span class="chapter__corner chapter__corner--a" aria-hidden="true"></span>
+                <span class="chapter__corner chapter__corner--b" aria-hidden="true"></span>
+              </div>
+              <figcaption>{r.caption}</figcaption>
+            </figure>
+
+            <div class="chapter__text">
+              <p class="chapter__meta">
+                <span class="chapter__no">{r.no}</span>
+                <span class="chapter__rule" aria-hidden="true"></span>
+                <span class="chapter__deva deva" aria-hidden="true">{r.deva}</span>
+              </p>
+
+              <h3 class="chapter__title">{r.title}</h3>
+              <p class="chapter__body">{r.body}</p>
+
+              <p class="chapter__commit">
+                <span class="chapter__commit-label">What we do about it</span>
+                {r.commitment}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <!-- ================= colour legend ================= -->
+    <aside class="colour-note reveal" aria-labelledby="colour-note-title">
+      <div class="colour-note__text">
+        <p class="eyebrow">Reading the colour</p>
+        <h3 id="colour-note-title" class="colour-note__title">
+          What each shade is traditionally worn for
+        </h3>
+        <p class="colour-note__lede">
+          If you are choosing for someone else, this is the part worth getting right.
+        </p>
+      </div>
+      <dl class="colour-note__list">
+        <div><dt><span class="colour-note__chip" style="--c:#651d35"></span>Maroon</dt><dd>Weddings, the bride's own saree, and the first Diwali after one.</dd></div>
+        <div><dt><span class="colour-note__chip" style="--c:#a52c50"></span>Rani red</dt><dd>Karwa Chauth, Teej, and any fast kept for the family.</dd></div>
+        <div><dt><span class="colour-note__chip" style="--c:#e8dac4"></span>Ivory</dt><dd>Poojas, griha pravesh, naming ceremonies. Silk, never synthetic.</dd></div>
+        <div><dt><span class="colour-note__chip" style="--c:#27483c"></span>Emerald</dt><dd>New beginnings, Teej, and the saree a new bride is gifted.</dd></div>
+        <div><dt><span class="colour-note__chip" style="--c:#b58a43"></span>Gold</dt><dd>Lakshmi pooja and Diwali night, when the room is lit by lamps.</dd></div>
+        <div><dt><span class="colour-note__chip" style="--c:#42263d"></span>Plum</dt><dd>Receptions and sangeets, where a bride wears something other than red.</dd></div>
+      </dl>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .why {
+    background:
+      radial-gradient(60% 50% at 85% 0%, rgba(181, 138, 67, 0.08), transparent 70%),
+      var(--bg);
+  }
+
+  /* ================= head ================= */
+  .why__head {
+    max-width: 56rem;
+    display: grid;
+    gap: 1rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .why__title {
+    font-size: var(--step-4);
+  }
+
+  .why__title-em {
+    color: var(--wine);
+  }
+
+  /* ================= intention ================= */
+  .intent {
+    position: relative;
+    max-width: 62rem;
+    margin-bottom: clamp(3rem, 7vw, 5.5rem);
+    padding: clamp(1.4rem, 3.5vw, 2.6rem) clamp(1.4rem, 3.5vw, 3rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--gold);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .intent__kicker {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .intent__title {
+    font-size: var(--step-2);
+    line-height: 1.2;
+    margin-bottom: 0.8rem;
+    max-width: 24ch;
+  }
+
+  .intent__body {
+    font-size: var(--step-0);
+    font-weight: 300;
+    line-height: 1.85;
+    color: var(--ink-soft);
+    max-width: 68ch;
+  }
+
+  .intent__body em {
+    color: var(--wine);
+  }
+
+  .intent__sign {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ================= chapters ================= */
+  .chapters {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .chapter {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+
+  /* Alternate the side the photograph sits on, so the eye zig-zags down the
+     page instead of running down a single column. */
+  .chapter--flip .chapter__media {
+    order: 2;
+  }
+
+  /* ---- media ---- */
+  .chapter__media {
+    margin: 0;
+  }
+
+  .chapter__frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-sunk);
+  }
+
+  .chapter__frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: scale 1.4s var(--ease-out-soft);
+  }
+
+  .chapter:hover .chapter__frame img {
+    scale: 1.04;
+  }
+
+  /* Each photograph keeps the shape it was taken in. */
+  .chapter__media--landscape .chapter__frame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .chapter__media--portrait .chapter__frame {
+    aspect-ratio: 4 / 5;
+  }
+
+  /* Gold corner rules, drawn inside the image. */
+  .chapter__corner {
+    position: absolute;
+    width: clamp(1.2rem, 2.5vw, 2rem);
+    height: clamp(1.2rem, 2.5vw, 2rem);
+    border: 0 solid var(--gold-light);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .chapter__corner--a {
+    top: 0.75rem;
+    left: 0.75rem;
+    border-top-width: 1px;
+    border-left-width: 1px;
+  }
+
+  .chapter__corner--b {
+    bottom: 0.75rem;
+    right: 0.75rem;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+  }
+
+  .chapter__media figcaption {
+    margin-top: 0.7rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---- text ---- */
+  .chapter__text {
+    display: grid;
+    gap: 0.6rem;
+    max-width: 54ch;
+  }
+
+  .chapter__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .chapter__no {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .chapter__rule {
+    width: clamp(1.5rem, 4vw, 3rem);
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  .chapter__deva {
+    font-size: var(--step-1);
+    color: var(--ink-faint);
+    line-height: 1.3;
+  }
+
+  .chapter__title {
+    font-size: var(--step-2);
+    line-height: 1.18;
+  }
+
+  .chapter__body {
+    color: var(--ink-soft);
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  /* The promise. Visually distinct from the history above it, because it is a
+     different kind of claim: this one we can be held to. */
+  .chapter__commit {
+    margin-top: 0.5rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--bg-sunk);
+    border-left: 2px solid var(--wine);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .chapter__commit-label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--wine);
+    margin-bottom: 0.3rem;
+  }
+
+  /* ================= colour legend ================= */
+  .colour-note {
+    margin-top: clamp(3rem, 7vw, 5.5rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: var(--dark);
+    color: var(--on-dark);
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .colour-note::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  }
+
+  .colour-note__title {
+    font-size: var(--step-2);
+    margin-top: 0.5rem;
+  }
+
+  .colour-note__lede {
+    margin-top: 0.6rem;
+    font-size: 0.86rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--on-dark-soft);
+  }
+
+  .colour-note__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1.1rem 2rem;
+    margin: 0;
+  }
+
+  .colour-note__list div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .colour-note__list dt {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.78rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .colour-note__list dd {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--on-dark-soft);
+  }
+
+  .colour-note__chip {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    flex: none;
+  }
+
+  /* ================= responsive ================= */
+  @media (max-width: 860px) {
+    .chapter {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+    /* On one column the photograph always leads; flipping it would just
+       shuffle the reading order for no gain. */
+    .chapter--flip .chapter__media {
+      order: 0;
+    }
+    .chapter__media--portrait .chapter__frame {
+      aspect-ratio: 3 / 2;
+    }
+    .colour-note {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

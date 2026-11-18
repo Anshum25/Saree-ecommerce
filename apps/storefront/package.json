@@ -1,0 +1,20 @@
+{
+  "name": "@jaiisha/storefront",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4321 --host",
+    "build": "astro build",
+    "preview": "astro preview --port 4321 --host",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@jaiisha/catalogue": "*",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^5.9.3"
+  }
+}

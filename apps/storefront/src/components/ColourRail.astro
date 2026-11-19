@@ -1,7 +1,23 @@
 ---
-import { colourFacets } from "@jaiisha/catalogue";
+import { colourFacets, queryProducts } from "@jaiisha/catalogue";
 
-const colours = colourFacets();
+/**
+ * Shop by colour, as a shelf of folded silk.
+ *
+ * Each colour is a tall bolt of cloth in that shade with a zari border woven
+ * along its foot. Hovering (or focusing) a bolt raises a photograph of an
+ * actual saree in that colour from behind the border — the best-selling one —
+ * so the swatch is never only a swatch. Touch screens have no hover, so they
+ * get the photograph straight away in a horizontal scroller.
+ */
+
+const colours = colourFacets().map((c) => {
+  const lead = queryProducts({ colour: c.slug, sort: "bestsellers", perPage: 1 }).items[0];
+  const variant = lead?.variants.find((v) => v.colour.slug === c.slug);
+  const image = variant?.images.find((i) => i.kind === "model") ?? variant?.images[0];
+  return { ...c, image };
+});
+
 ---
 
 <section class="col section" id="colour" aria-labelledby="col-title">
@@ -10,18 +26,43 @@ const colours = colourFacets();
       <p class="eyebrow">Shop by colour</p>
       <h2 class="col__title" id="col-title">Start from the shade you have in mind</h2>
       <div class="rule col__rule"><span class="rule__mark"></span></div>
+      <p class="col__intro">
+        In a saree the colour speaks first — red for a bride, ivory for a pooja, green for a new
+        beginning. Pick the shade; we will show you every weave it comes in.
+      </p>
     </div>
 
     <ul class="col__list">
       {
         colours.map((c) => (
-          <li>
-            <a class="col__item reveal" href={`/sarees?colour=${c.slug}`}>
-              <span class="col__disc" style={`--a:${c.hex};--b:${c.shadeHex ?? c.hex}`} aria-hidden="true">
-                <span class="col__sheen"></span>
+          <li class="col__cell reveal">
+            <a
+              class="col__bolt"
+              href={`/sarees?colour=${c.slug}`}
+              style={`--a:${c.hex};--b:${c.shadeHex ?? c.hex}`}
+            >
+              <span class="col__silk" aria-hidden="true">
+                <span class="col__fold" />
+                <span class="col__sheen" />
               </span>
-              <span class="col__name">{c.name}</span>
-              <span class="col__count">{c.count} designs</span>
+              {c.image && (
+                <img
+                  class="col__photo"
+                  src={c.image.src}
+                  alt=""
+                  width={c.image.width}
+                  height={c.image.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              <span class="col__border" aria-hidden="true" />
+              <span class="col__label">
+                <span class="col__name">{c.name}</span>
+                <span class="col__count">
+                  {c.count} {c.count === 1 ? "design" : "designs"}
+                </span>
+              </span>
             </a>
           </li>
         ))
@@ -40,81 +81,193 @@ const colours = colourFacets();
     width: min(14rem, 50%);
   }
 
+  .col__intro {
+    max-width: 56ch;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
   .col__list {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
-    gap: clamp(0.6rem, 2vw, 1.5rem);
+    gap: clamp(0.5rem, 1.2vw, 1rem);
   }
 
-  .col__item {
-    display: grid;
-    justify-items: center;
-    gap: 0.6rem;
-    text-align: center;
-  }
-
-  .col__disc {
+  /* ---- the bolt --------------------------------------------------------- */
+  .col__bolt {
     position: relative;
     display: block;
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, var(--a), var(--b) 78%);
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), var(--shadow-sm);
+    aspect-ratio: 3 / 5.2;
     overflow: hidden;
-    transition: scale 0.5s var(--ease-out-soft), box-shadow 0.5s var(--ease);
+    border-radius: var(--r-sm);
+    color: #fbf4e6;
+    box-shadow: 0 14px 30px -18px rgba(28, 15, 21, 0.6);
+    transition:
+      translate 0.6s var(--ease-out-soft),
+      box-shadow 0.6s var(--ease);
   }
 
-  .col__item:hover .col__disc {
-    scale: 1.06;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--bg), 0 0 0 2px var(--gold),
-      var(--shadow-md);
+  .col__bolt:hover,
+  .col__bolt:focus-visible {
+    translate: 0 -8px;
+    box-shadow: 0 28px 50px -22px rgba(28, 15, 21, 0.7);
   }
 
-  /* A silk highlight that sweeps across on hover */
+  /* The cloth: the colour, a faint jaal woven into it, and soft folds. */
+  .col__silk {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 240, 205, 0.09) 0 1px, transparent 1px 16px),
+      repeating-linear-gradient(-45deg, rgba(255, 240, 205, 0.09) 0 1px, transparent 1px 16px),
+      linear-gradient(160deg, var(--a), var(--b) 85%);
+  }
+
+  .col__fold {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.18) 0%,
+      transparent 18%,
+      rgba(255, 255, 255, 0.1) 30%,
+      transparent 42%,
+      rgba(0, 0, 0, 0.14) 60%,
+      transparent 74%,
+      rgba(255, 255, 255, 0.08) 86%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  }
+
   .col__sheen {
     position: absolute;
-    inset: -30%;
+    inset: -20% -60%;
     background: linear-gradient(
-      70deg,
-      transparent 38%,
-      rgba(255, 255, 255, 0.42) 50%,
-      transparent 62%
+      100deg,
+      transparent 40%,
+      rgba(255, 250, 235, 0.38) 50%,
+      transparent 60%
     );
-    translate: -70% 0;
-    transition: translate 0.9s var(--ease-out-soft);
+    translate: -60% 0;
+    transition: translate 1.1s var(--ease-out-soft);
   }
 
-  .col__item:hover .col__sheen {
-    translate: 70% 0;
+  .col__bolt:hover .col__sheen,
+  .col__bolt:focus-visible .col__sheen {
+    translate: 60% 0;
+  }
+
+  /* The photograph rises from behind the border. */
+  .col__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 20%;
+    clip-path: inset(100% 0 0 0);
+    scale: 1.12;
+    transition:
+      clip-path 0.75s cubic-bezier(0.77, 0, 0.18, 1),
+      scale 1.2s var(--ease-out-soft);
+  }
+
+  .col__bolt:hover .col__photo,
+  .col__bolt:focus-visible .col__photo {
+    clip-path: inset(0 0 0 0);
+    scale: 1;
+  }
+
+  /* A zari border, woven along the foot of the bolt. */
+  .col__border {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30%;
+    background:
+      linear-gradient(to top, rgba(18, 8, 12, 0.75), transparent),
+      repeating-linear-gradient(90deg, rgba(28, 15, 21, 0.35) 0 1px, transparent 1px 7px);
+    border-top: 3px double rgba(217, 184, 114, 0.85);
+    pointer-events: none;
+  }
+
+  .col__border::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 6px;
+    height: 5px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(217, 184, 114, 0.85) 0 5px,
+      transparent 5px 9px
+    );
+  }
+
+  .col__label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.9rem 0.7rem;
+    text-align: center;
+    color: #fbf4e6;
   }
 
   .col__name {
     font-family: var(--font-display);
-    font-size: var(--step-1);
-    line-height: 1.1;
+    font-size: clamp(0.78rem, 0.55rem + 0.42vw, 1rem);
+    line-height: 1.15;
+    white-space: nowrap;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   }
 
   .col__count {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--ink-faint);
+    color: var(--gold-pale);
   }
 
-  @media (max-width: 880px) {
+  /* ---- narrow and touch: a scroller with the photographs showing ------- */
+  @media (max-width: 880px), (hover: none) {
     .col__list {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      row-gap: 1.8rem;
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 0.6rem var(--gutter) 1rem;
     }
-  }
-
-  @media (max-width: 420px) {
-    .col__list {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .col__count {
+    .col__list::-webkit-scrollbar {
       display: none;
+    }
+    .col__cell {
+      flex: 0 0 min(38vw, 10rem);
+      scroll-snap-align: start;
+    }
+    .col__photo {
+      clip-path: inset(0 0 0 0);
+      scale: 1;
+    }
+    /* Keep the shade visible as a band across the top of the photograph. */
+    .col__photo {
+      top: 22%;
+      height: 78%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .col__bolt,
+    .col__photo,
+    .col__sheen {
+      transition: none;
     }
   }
 </style>

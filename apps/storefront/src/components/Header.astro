@@ -1,5 +1,14 @@
 ---
 import Logo from "./Logo.astro";
+import {
+  colourFacets,
+  defaultVariant,
+  newArrivals,
+  occasionBySlug,
+  queryProducts,
+  type Product,
+  type ProductQuery,
+} from "@jaiisha/catalogue";
 import { ANNOUNCEMENTS, NAV, SITE } from "../lib/site.ts";
 
 interface Props {
@@ -8,6 +17,68 @@ interface Props {
 }
 const { overHero = false } = Astro.props;
 const path = Astro.url.pathname;
+
+/*
+ * Menu panels. Every top-level item with something to show opens a
+ * full-width panel: a row of round, gold-framed photographs, each one a door
+ * into that cut of the shop, and the same links again as plain text beneath.
+ *
+ * Photographs are resolved from the catalogue rather than hard-coded, so a
+ * link to "?fabric=organza" always shows the best-selling organza saree and
+ * the menu keeps up with the shelf.
+ */
+interface Tile {
+  label: string;
+  href: string;
+  note?: string;
+  image?: string;
+}
+
+const modelOf = (product: Product | undefined, colour?: string) => {
+  if (!product) return undefined;
+  const v = (colour && product.variants.find((x) => x.colour.slug === colour)) || defaultVariant(product);
+  return (v.images.find((i) => i.kind === "model") ?? v.images[0])?.src;
+};
+
+const imageFor = (href: string): string | undefined => {
+  const url = new URL(href, "https://jaiisha.local");
+  if (url.pathname.startsWith("/occasion/")) {
+    return occasionBySlug(url.pathname.split("/")[2] ?? "")?.image;
+  }
+  const q: ProductQuery = { sort: "bestsellers", perPage: 1 };
+  const get = (k: string) => url.searchParams.get(k) ?? undefined;
+  if (get("fabric")) q.fabric = get("fabric") as ProductQuery["fabric"];
+  if (get("colour")) q.colour = get("colour");
+  if (get("weave")) q.weave = get("weave") as ProductQuery["weave"];
+  if (get("price")) q.price = get("price");
+  if (get("occasion")) q.occasion = get("occasion") as ProductQuery["occasion"];
+  if (url.searchParams.get("sort") === "newest") q.sort = "newest";
+  return modelOf(queryProducts(q).items[0], q.colour);
+};
+
+const panelFor = (item: (typeof NAV)[number]): Tile[] => {
+  if (item.children) {
+    return item.children.map((c) => ({ ...c, image: imageFor(c.href) }));
+  }
+  if (item.href.startsWith("/sarees?sort=newest")) {
+    return newArrivals(6).map((p) => ({
+      label: p.name.replace(/ Saree$/, ""),
+      href: `/sarees/${p.slug}`,
+      image: modelOf(p),
+    }));
+  }
+  if (item.href.startsWith("/sarees#colour")) {
+    return colourFacets().map((c) => ({
+      label: c.name,
+      href: `/sarees?colour=${c.slug}`,
+      note: `${c.count} designs`,
+      image: imageFor(`/sarees?colour=${c.slug}`),
+    }));
+  }
+  return [];
+};
+
+const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
 ---
 
 <div class="announce">
@@ -29,34 +100,61 @@ const path = Astro.url.pathname;
     </button>
 
     <a href="/" class="head__brand" aria-label={`${SITE.name} — home`}>
-      <Logo size={1.45} />
+      <img
+        class="head__logo"
+        src="/img/brand/jaiisha-logo.png"
+        alt={`${SITE.name} — Banarasi silk sarees`}
+        width="353"
+        height="240"
+        fetchpriority="high"
+        decoding="async"
+      />
     </a>
 
     <nav class="head__nav" aria-label="Main">
       <ul class="head__list">
         {
-          NAV.map((item) => (
-            <li class:list={["head__item", item.children && "has-menu"]}>
+          menus.map((item) => (
+            <li class:list={["head__item", item.panel.length > 0 && "has-menu"]}>
               <a
                 href={item.href}
                 class="head__link"
                 aria-current={path === item.href ? "page" : undefined}
               >
                 {item.label}
+                {item.panel.length > 0 && (
+                  <svg class="head__caret" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  </svg>
+                )}
               </a>
-              {item.children && (
-                <div class="mega" role="group">
-                  <div class="mega__inner">
-                    <ul class="mega__list">
-                      {item.children.map((child) => (
-                        <li>
-                          <a href={child.href} class="mega__link">
-                            <span class="mega__label">{child.label}</span>
-                            {child.note && <span class="mega__note">{child.note}</span>}
+              {item.panel.length > 0 && (
+                <div class="mega" role="group" aria-label={item.label}>
+                  <div class="mega__inner shell">
+                    <ul class="mega__tiles" style={`--n:${Math.min(item.panel.length, 8)}`}>
+                      {item.panel.map((t, i) => (
+                        <li style={`--i:${i}`}>
+                          <a href={t.href} class="mega__tile">
+                            <span class="mega__ring" aria-hidden="true">
+                              <span class="mega__photo">
+                                {t.image && (
+                                  <img src={t.image} alt="" width="160" height="160" loading="lazy" decoding="async" />
+                                )}
+                              </span>
+                            </span>
+                            <span class="mega__label">{t.label}</span>
+                            {t.note && <span class="mega__note">{t.note}</span>}
                           </a>
                         </li>
                       ))}
                     </ul>
+                    <div class="mega__foot">
+                      <span class="mega__kicker">{item.label}</span>
+                      {item.panel.slice(0, 7).map((t) => (
+                        <a href={t.href} class="mega__text">{t.label}</a>
+                      ))}
+                      <a href={item.href} class="mega__all">View all</a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -183,12 +281,18 @@ const path = Astro.url.pathname;
   }
 
   /* --- header --------------------------------------------------------- */
+  /* Deep wine, the burgundy the logo is woven on, so the mark sits in the
+     bar rather than on it. */
   .head {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--ivory-warm);
-    border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(40% 140% at 12% 50%, rgba(122, 30, 52, 0.85), transparent 70%),
+      linear-gradient(180deg, #4a0f20, #3a0a18);
+    color: var(--gold-pale);
+    border-bottom: 1px solid rgba(181, 138, 67, 0.45);
+    box-shadow: 0 8px 30px -12px rgba(28, 8, 14, 0.6);
     transition: background-color 0.45s var(--ease), border-color 0.45s var(--ease),
       color 0.45s var(--ease), box-shadow 0.45s var(--ease);
   }
@@ -220,13 +324,21 @@ const path = Astro.url.pathname;
   .head__inner {
     display: grid;
     grid-template-columns: auto 1fr auto;
-    align-items: center;
+    align-items: stretch;
     gap: 1rem;
-    min-height: 4.6rem;
+    min-height: 5.2rem;
   }
 
   .head__brand {
     justify-self: start;
+    align-self: center;
+  }
+
+  /* Transparent artwork, so it sits on the bar as it would on any colour. */
+  .head__logo {
+    display: block;
+    height: 4.8rem;
+    width: auto;
   }
 
   /* Scoped to .head__inner so this beats `.icon-btn { display: grid }`,
@@ -242,26 +354,51 @@ const path = Astro.url.pathname;
     justify-self: center;
   }
 
+  /* Links fill the bar's full height, so the pointer never crosses a gap on
+     its way down into a panel. */
   .head__list {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: clamp(0.9rem, 1.8vw, 2.1rem);
+    height: 100%;
     margin: 0;
   }
 
+  /* Static, so each panel measures from the header and spans its width. */
   .head__item {
-    position: relative;
+    position: static;
+    display: flex;
   }
 
   .head__link {
-    display: inline-block;
-    padding: 1.6rem 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.74rem;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     white-space: nowrap;
+    color: var(--gold-pale);
     position: relative;
+    transition: color 0.3s var(--ease);
+  }
+
+  .head__item:hover .head__link,
+  .head__link[aria-current="page"] {
+    color: #fff4dc;
+  }
+
+  .head__caret {
+    width: 0.8rem;
+    height: 0.8rem;
+    opacity: 0.7;
+    transition: rotate 0.35s var(--ease);
+  }
+
+  .head__item:hover .head__caret,
+  .head__item:focus-within .head__caret {
+    rotate: 180deg;
   }
 
   .head__link::after {
@@ -269,9 +406,9 @@ const path = Astro.url.pathname;
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 1.25rem;
+    bottom: 1.55rem;
     height: 1px;
-    background: var(--gold);
+    background: var(--gold-light);
     scale: 0 1;
     transform-origin: left;
     transition: scale 0.45s var(--ease-out-soft);
@@ -282,17 +419,40 @@ const path = Astro.url.pathname;
     scale: 1 1;
   }
 
-  /* --- mega menu ------------------------------------------------------ */
+  /* --- menu panels ----------------------------------------------------- */
   .mega {
     position: absolute;
+    left: 0;
+    right: 0;
     top: 100%;
-    left: 50%;
-    translate: -50% 0;
-    padding-top: 0.25rem;
+    z-index: 2;
+    color: var(--ink);
+    background:
+      repeating-linear-gradient(45deg, rgba(181, 138, 67, 0.08) 0 1px, transparent 1px 36px),
+      repeating-linear-gradient(-45deg, rgba(181, 138, 67, 0.08) 0 1px, transparent 1px 36px),
+      linear-gradient(180deg, #f6ecdd, #efe0c9);
+    border-top: 2px solid var(--gold);
+    border-bottom: 1px solid rgba(181, 138, 67, 0.45);
+    box-shadow: 0 30px 60px -20px rgba(36, 19, 25, 0.45);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s var(--ease), translate 0.35s var(--ease), visibility 0.3s;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      opacity 0.3s var(--ease),
+      clip-path 0.55s var(--ease-out-soft),
+      visibility 0s linear 0.55s;
+  }
+
+  /* A woven border along the panel's foot. */
+  .mega::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: repeating-linear-gradient(90deg, rgba(181, 138, 67, 0.7) 0 6px, transparent 6px 11px);
   }
 
   .head__item.has-menu:hover .mega,
@@ -300,39 +460,179 @@ const path = Astro.url.pathname;
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    translate: -50% 0;
+    clip-path: inset(0 0 0 0);
+    transition:
+      opacity 0.3s var(--ease),
+      clip-path 0.55s var(--ease-out-soft),
+      visibility 0s;
   }
 
   .mega__inner {
-    min-width: 19rem;
-    background: var(--surface);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-top: 2px solid var(--gold);
-    box-shadow: var(--shadow-lg);
-    padding: 0.6rem;
+    padding-block: 1.8rem 1.6rem;
   }
 
-  .mega__link {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    padding: 0.6rem 0.85rem;
-    transition: background-color 0.25s var(--ease);
+  .mega__tiles {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 9.5rem));
+    justify-content: center;
+    gap: clamp(0.8rem, 2vw, 2rem);
   }
 
-  .mega__link:hover {
-    background: var(--bg-sunk);
+  .mega__tile {
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+    text-align: center;
+  }
+
+  /* Each tile rises in a beat after the one before when the panel opens. */
+  .head__item:hover .mega__tiles > li,
+  .head__item:focus-within .mega__tiles > li {
+    animation: tileUp 0.6s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i) * 45ms + 80ms);
+  }
+
+  @keyframes tileUp {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+  }
+
+  /* The frame: a gold ring, a ring of zari dots that turns on hover, and a
+     lozenge at the crown. */
+  .mega__ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    padding: 9%;
+    background:
+      radial-gradient(circle, transparent 60%, rgba(181, 138, 67, 0.12) 61%, transparent 72%),
+      transparent;
+    border: 1px solid rgba(160, 120, 52, 0.75);
+  }
+
+  .mega__ring::before {
+    content: "";
+    position: absolute;
+    inset: 4%;
+    border-radius: 50%;
+    border: 2px dotted rgba(160, 120, 52, 0.75);
+    transition: rotate 1.2s var(--ease-out-soft);
+  }
+
+  .mega__ring::after {
+    content: "";
+    position: absolute;
+    top: -0.3rem;
+    left: 50%;
+    width: 0.55rem;
+    height: 0.55rem;
+    translate: -50% 0;
+    rotate: 45deg;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px #f4e8d6;
+  }
+
+  .mega__tile:hover .mega__ring::before {
+    rotate: 90deg;
+  }
+
+  .mega__photo {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #6a1a2c;
+    box-shadow:
+      0 0 0 3px #f4e8d6,
+      0 0 0 4px rgba(160, 120, 52, 0.6),
+      0 12px 24px -10px rgba(66, 20, 36, 0.55);
+  }
+
+  .mega__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 18%;
+    transition: scale 0.8s var(--ease-out-soft);
+  }
+
+  .mega__tile:hover .mega__photo img {
+    scale: 1.08;
   }
 
   .mega__label {
-    font-size: 0.86rem;
-    letter-spacing: 0.04em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #4a1326;
+    line-height: 1.35;
   }
 
   .mega__note {
-    font-size: 0.72rem;
+    margin-top: -0.3rem;
+    font-size: 0.7rem;
     color: var(--ink-faint);
+  }
+
+  .mega__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.4rem 1.2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(160, 120, 52, 0.3);
+  }
+
+  .mega__kicker {
+    flex-basis: 100%;
+    text-align: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .mega__text,
+  .mega__all {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: #4a1326;
+    background: linear-gradient(var(--gold), var(--gold)) 0 100% / 0 1px no-repeat;
+    transition:
+      background-size 0.35s var(--ease-out-soft),
+      color 0.25s var(--ease);
+  }
+
+  .mega__text:hover,
+  .mega__all:hover {
+    color: var(--wine);
+    background-size: 100% 1px;
+  }
+
+  .mega__all {
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mega,
+    .head__item.has-menu:hover .mega {
+      clip-path: none;
+      transition: opacity 0.2s, visibility 0s;
+    }
+    .head__item:hover .mega__tiles > li {
+      animation: none;
+    }
   }
 
   /* --- tools ---------------------------------------------------------- */
@@ -358,9 +658,13 @@ const path = Astro.url.pathname;
     height: 1.25rem;
   }
 
+  .icon-btn {
+    color: var(--gold-pale);
+  }
+
   .icon-btn:hover {
-    background: rgba(101, 29, 53, 0.08);
-    color: var(--wine);
+    background: rgba(246, 239, 228, 0.12);
+    color: #fff4dc;
   }
 
   .head--over .icon-btn:hover {
@@ -554,10 +858,14 @@ const path = Astro.url.pathname;
     }
     .head__inner {
       grid-template-columns: auto 1fr auto;
-      min-height: 4rem;
+      align-items: center;
+      min-height: 4.2rem;
     }
     .head__brand {
       justify-self: center;
+    }
+    .head__logo {
+      height: 3.7rem;
     }
   }
 
@@ -598,6 +906,15 @@ const path = Astro.url.pathname;
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
   }
+
+  // --- menu panels: fetch their photographs on first approach -----------
+  // They are lazy, and a lazy image inside a hidden panel never starts
+  // loading until the panel opens; start them as soon as the pointer
+  // reaches the bar so the panel opens full.
+  const nav = document.querySelector<HTMLElement>(".head__nav");
+  const warm = () => nav?.querySelectorAll<HTMLImageElement>(".mega img").forEach((img) => (img.loading = "eager"));
+  nav?.addEventListener("pointerenter", warm, { once: true });
+  nav?.addEventListener("focusin", warm, { once: true });
 
   // --- overlays ---------------------------------------------------------
   const openOverlay = (el: HTMLElement | null) => {

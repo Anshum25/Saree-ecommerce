@@ -39,6 +39,10 @@ const colours = COLOURS.filter((c) =>
   products.some((p) => p.variants.some((v) => v.colour.slug === c.slug)),
 );
 const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug));
+
+/* The other occasions, for the strip at the foot of the page. */
+const others = OCCASIONS.filter((o) => o.slug !== occasion.slug);
+const code = occasion.colourCode;
 ---
 
 <Base
@@ -46,34 +50,59 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
   description={`${occasion.blurb} ${occasion.tradition}`.slice(0, 180)}
   canonicalPath={`/occasion/${occasion.slug}`}
 >
-  <nav class="crumbs shell" aria-label="Breadcrumb">
-    <ol>
-      <li><a href="/">Home</a></li>
-      <li><a href="/sarees">Sarees</a></li>
-      <li aria-current="page">{occasion.name}</li>
-    </ol>
-  </nav>
-
   <header class="ohead" style={`--accent:${occasion.accent}`}>
     <div class="shell ohead__inner">
-      <p class="eyebrow">Shop by occasion</p>
-      <h1 class="ohead__title">{occasion.name}</h1>
-      <p class="ohead__tradition">{occasion.tradition}</p>
+      <div class="ohead__text">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="/">Home</a></li>
+            <li><a href="/sarees">Sarees</a></li>
+            <li aria-current="page">{occasion.name}</li>
+          </ol>
+        </nav>
+        <p class="eyebrow ohead__eyebrow">Shop by occasion</p>
+        <h1 class="ohead__title">{occasion.name}</h1>
+        <p class="ohead__blurb">{occasion.blurb}</p>
+        <p class="ohead__tradition">{occasion.tradition}</p>
 
-      <dl class="ohead__facts">
-        <div>
-          <dt>Pieces</dt>
-          <dd>{products.length}</dd>
+        <div class="ohead__code">
+          <span class="ohead__swatch" style={`--sw:${code.swatch}`} aria-hidden="true"></span>
+          <span>
+            <span class="ohead__code-kicker">The colour speaks</span>
+            <span class="ohead__code-colour">{code.colour}</span>
+            <span class="ohead__code-meaning">{code.meaning}</span>
+          </span>
         </div>
-        <div>
-          <dt>Fabrics</dt>
-          <dd>{fabrics.map((f) => f.name).join(", ")}</dd>
+
+        <dl class="ohead__facts">
+          <div>
+            <dt>Pieces</dt>
+            <dd>{products.length}</dd>
+          </div>
+          <div>
+            <dt>Fabrics</dt>
+            <dd>{fabrics.map((f) => f.name).join(", ")}</dd>
+          </div>
+          <div>
+            <dt>Colours</dt>
+            <dd>{colours.length} shades</dd>
+          </div>
+        </dl>
+      </div>
+
+      <figure class="ohead__art">
+        <div class="ohead__frame">
+          <img
+            src={occasion.image}
+            alt={occasion.imageAlt}
+            width="1600"
+            height="2400"
+            fetchpriority="high"
+            decoding="async"
+          />
         </div>
-        <div>
-          <dt>Colours</dt>
-          <dd>{colours.map((c) => c.name).join(", ")}</dd>
-        </div>
-      </dl>
+        <span class="ohead__keystone" aria-hidden="true"></span>
+      </figure>
     </div>
   </header>
 
@@ -97,6 +126,26 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
       <div class="olist__grid">
         {products.map((p, i) => <ProductCard product={p} priority={i < 4} />)}
       </div>
+    </div>
+  </section>
+
+  <section class="oother" aria-labelledby="oother-title">
+    <div class="shell">
+      <h2 class="oother__title" id="oother-title">Dressing for something else?</h2>
+      <ul class="oother__list">
+        {
+          others.map((o) => (
+            <li>
+              <a class="oother__tile" href={`/occasion/${o.slug}`} style={`--accent:${o.accent}`}>
+                <img src={o.image} alt="" width="400" height="500" loading="lazy" decoding="async" />
+                <span class="oother__shade" aria-hidden="true" />
+                <span class="oother__name">{o.name}</span>
+                <span class="oother__blurb">{o.blurb}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 
@@ -126,32 +175,14 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
 </Base>
 
 <style>
-  .crumbs {
-    padding-top: 1.5rem;
-    font-size: 0.74rem;
-    color: var(--ink-faint);
-  }
-  .crumbs ol {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .crumbs li + li::before {
-    content: "/";
-    margin-right: 0.5rem;
-    color: var(--line-strong);
-  }
-  .crumbs a:hover {
-    color: var(--wine);
-  }
-
-  /* --- head ------------------------------------------------------------- */
+  /* --- head: the occasion in its own colour, beside its photograph --------- */
   .ohead {
-    margin-top: 1.2rem;
-    padding-block: clamp(2rem, 5vw, 3.5rem);
-    background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 55%, #1c0f15));
-    color: var(--on-dark);
     position: relative;
+    padding-block: clamp(1.6rem, 3.5vw, 3rem);
+    background:
+      radial-gradient(55% 80% at 80% 30%, color-mix(in oklab, var(--accent) 85%, white 8%), transparent 70%),
+      linear-gradient(160deg, color-mix(in oklab, var(--accent) 60%, #1c0f15), #1c0f15 75%);
+    color: var(--on-dark);
     overflow: hidden;
   }
 
@@ -160,8 +191,8 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
     position: absolute;
     inset: 0;
     background-image:
-      repeating-linear-gradient(45deg, rgba(240, 220, 174, 0.08) 0 1px, transparent 1px 38px),
-      repeating-linear-gradient(-45deg, rgba(240, 220, 174, 0.08) 0 1px, transparent 1px 38px);
+      repeating-linear-gradient(45deg, rgba(240, 220, 174, 0.07) 0 1px, transparent 1px 38px),
+      repeating-linear-gradient(-45deg, rgba(240, 220, 174, 0.07) 0 1px, transparent 1px 38px);
     pointer-events: none;
   }
 
@@ -169,33 +200,122 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
     position: relative;
     z-index: 1;
     display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    gap: clamp(1.5rem, 5vw, 5rem);
+    align-items: center;
+  }
+
+  .ohead__text {
+    display: grid;
     gap: 0.7rem;
+    justify-items: start;
+  }
+
+  .crumbs {
+    margin-bottom: 0.5rem;
+    font-size: 0.72rem;
+    color: rgba(246, 239, 228, 0.6);
+  }
+
+  .crumbs ol {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .crumbs li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: rgba(246, 239, 228, 0.3);
+  }
+
+  .crumbs a:hover {
+    color: var(--gold-light);
+  }
+
+  .ohead__eyebrow {
+    color: var(--gold-light);
   }
 
   .ohead__title {
-    font-size: var(--step-4);
+    font-size: var(--step-5);
     font-weight: 300;
+    line-height: 1;
+  }
+
+  .ohead__blurb {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--gold-pale);
   }
 
   .ohead__tradition {
-    max-width: 68ch;
+    max-width: 60ch;
     font-size: var(--step-0);
     font-weight: 300;
     line-height: 1.75;
     color: rgba(246, 239, 228, 0.86);
   }
 
+  .ohead__code {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 0.4rem;
+    padding: 0.7rem 1.1rem 0.7rem 0.8rem;
+    border: 1px solid rgba(217, 184, 114, 0.35);
+    background: rgba(18, 8, 12, 0.45);
+    backdrop-filter: blur(6px);
+  }
+
+  .ohead__code > span:last-child {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .ohead__swatch {
+    flex: none;
+    width: 2.2rem;
+    height: 2.2rem;
+    rotate: 45deg;
+    scale: 0.8;
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 246, 226, 0.25) 0 1px, transparent 1px 6px),
+      var(--sw);
+    border: 1px solid var(--gold-light);
+    box-shadow: 0 0 18px color-mix(in oklab, var(--sw) 70%, transparent);
+  }
+
+  .ohead__code-kicker {
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .ohead__code-colour {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+  }
+
+  .ohead__code-meaning {
+    font-size: 0.76rem;
+    color: rgba(246, 239, 228, 0.7);
+  }
+
   .ohead__facts {
     display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem 2.5rem;
-    margin: 1.2rem 0 0;
-    padding-top: 1.2rem;
+    gap: 1.2rem 2.5rem;
+    margin: 0.8rem 0 0;
+    padding-top: 1rem;
     border-top: 1px solid rgba(246, 239, 228, 0.22);
   }
 
   .ohead__facts dt {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--gold-light);
@@ -205,6 +325,67 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
     margin: 0.25rem 0 0;
     font-size: 0.88rem;
     max-width: 30ch;
+  }
+
+  /* The photograph, in the same Mughal arch as the homepage. */
+  .ohead__art {
+    position: relative;
+    margin: 0;
+    justify-self: center;
+    width: min(100%, 22rem);
+    animation: archIn 1.1s var(--ease-out-soft) both;
+  }
+
+  @keyframes archIn {
+    from {
+      opacity: 0;
+      scale: 0.95;
+    }
+  }
+
+  .ohead__frame {
+    padding: 0.5rem;
+    border: 1px solid rgba(217, 184, 114, 0.6);
+    border-radius: 50% 50% 6px 6px / 36% 36% 2% 2%;
+    background: rgba(181, 138, 67, 0.08);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  }
+
+  .ohead__frame img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: 50% 25%;
+    border-radius: 50% 50% 4px 4px / 36% 36% 1.5% 1.5%;
+  }
+
+  .ohead__keystone {
+    position: absolute;
+    top: -0.4rem;
+    left: 50%;
+    translate: -50% 0;
+    width: 0.8rem;
+    height: 0.8rem;
+    rotate: 45deg;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 60%, #1c0f15);
+  }
+
+  @media (max-width: 860px) {
+    .ohead__inner {
+      grid-template-columns: 1fr;
+    }
+    .ohead__art {
+      order: -1;
+      width: min(70%, 16rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ohead__art {
+      animation: none;
+    }
   }
 
   /* --- list ------------------------------------------------------------- */
@@ -288,7 +469,79 @@ const fabrics = FABRICS.filter((f) => products.some((p) => p.fabric === f.slug))
     margin: 0.5rem 0 0.7rem;
   }
 
+  /* --- other occasions --------------------------------------------------- */
+  .oother {
+    padding-bottom: var(--section-y);
+  }
+
+  .oother__title {
+    margin-bottom: 1.2rem;
+    font-size: var(--step-2);
+    font-weight: 300;
+  }
+
+  .oother__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(0.6rem, 1.4vw, 1.2rem);
+  }
+
+  .oother__tile {
+    position: relative;
+    display: grid;
+    align-content: end;
+    gap: 0.3rem;
+    min-height: 14rem;
+    padding: 1.1rem;
+    overflow: hidden;
+    border-radius: var(--r-sm);
+    color: var(--on-dark);
+    isolation: isolate;
+  }
+
+  .oother__tile img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 1s var(--ease-out-soft);
+  }
+
+  .oother__shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--accent) 80%, #12080c) 0%,
+      color-mix(in oklab, var(--accent) 35%, transparent) 55%,
+      transparent
+    );
+    transition: opacity 0.5s var(--ease);
+  }
+
+  .oother__tile:hover img {
+    scale: 1.06;
+  }
+
+  .oother__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+
+  .oother__blurb {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(246, 239, 228, 0.82);
+  }
+
   @media (max-width: 1000px) {
+    .oother__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .olist__grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }

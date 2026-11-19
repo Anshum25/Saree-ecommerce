@@ -257,7 +257,7 @@ const suggested = bestsellers(3);
   }
 
   /* Individual item row */
-  .brow {
+  :global(.brow) {
     display: grid;
     grid-template-columns: 6rem minmax(0, 1fr) auto;
     gap: clamp(1rem, 2.5vw, 2rem);
@@ -266,7 +266,7 @@ const suggested = bestsellers(3);
     border-bottom: 1px solid var(--line);
   }
 
-  .brow__img {
+  :global(.brow__img) {
     aspect-ratio: 3 / 4;
     overflow: hidden;
     background: var(--bg-sunk);
@@ -274,18 +274,18 @@ const suggested = bestsellers(3);
     display: block;
   }
 
-  .brow__img img {
+  :global(.brow__img img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s;
   }
 
-  .brow__img:hover img {
+  :global(.brow__img:hover img) {
     transform: scale(1.05);
   }
 
-  .brow__name {
+  :global(.brow__name) {
     font-family: var(--font-display);
     font-size: var(--step-1);
     color: var(--ink);
@@ -293,18 +293,18 @@ const suggested = bestsellers(3);
     margin-bottom: 0.3rem;
   }
 
-  .brow__name:hover {
+  :global(.brow__name:hover) {
     color: var(--wine);
   }
 
-  .brow__meta {
+  :global(.brow__meta) {
     font-size: 0.8rem;
     letter-spacing: 0.04em;
     color: var(--ink-faint);
   }
 
   /* Quantity controls on full page */
-  .brow__qty-box {
+  :global(.brow__qty-box) {
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--line-strong);
@@ -313,7 +313,7 @@ const suggested = bestsellers(3);
     margin-top: 0.65rem;
   }
 
-  .brow__qty-btn {
+  :global(.brow__qty-btn) {
     width: 2rem;
     height: 2rem;
     display: grid;
@@ -326,18 +326,18 @@ const suggested = bestsellers(3);
     transition: background-color 0.2s;
   }
 
-  .brow__qty-btn:hover {
+  :global(.brow__qty-btn:hover) {
     background: var(--ivory);
     color: var(--wine);
   }
 
-  .brow__qty-val {
+  :global(.brow__qty-val) {
     padding-inline: 0.6rem;
     font-size: 0.88rem;
     font-weight: 600;
   }
 
-  .brow__right {
+  :global(.brow__right) {
     text-align: right;
     display: flex;
     flex-direction: column;
@@ -345,13 +345,13 @@ const suggested = bestsellers(3);
     gap: 0.4rem;
   }
 
-  .brow__price {
+  :global(.brow__price) {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--wine);
   }
 
-  .brow__remove {
+  :global(.brow__remove) {
     background: none;
     border: none;
     font-size: 0.78rem;
@@ -361,7 +361,7 @@ const suggested = bestsellers(3);
     padding: 0;
   }
 
-  .brow__remove:hover {
+  :global(.brow__remove:hover) {
     color: var(--maroon);
   }
 
@@ -609,10 +609,10 @@ const suggested = bestsellers(3);
   }
 
   @media (max-width: 540px) {
-    .brow {
+    :global(.brow) {
       grid-template-columns: 5rem 1fr;
     }
-    .brow__right {
+    :global(.brow__right) {
       grid-column: 2;
       align-items: flex-start;
       margin-top: 0.5rem;

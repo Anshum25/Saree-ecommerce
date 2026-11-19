@@ -1,5 +1,4 @@
 ---
-import Logo from "./Logo.astro";
 import { SITE, whatsappLink } from "../lib/site.ts";
 
 const year = new Date().getFullYear();
@@ -80,7 +79,15 @@ const columns = [
 
   <div class="shell foot__main">
     <div class="foot__brand">
-      <Logo size={1.6} />
+      <img
+        class="foot__logo"
+        src="/img/brand/jaiisha-logo.png"
+        alt="JAIISHA — Banarasi silk sarees"
+        width="353"
+        height="240"
+        loading="lazy"
+        decoding="async"
+      />
       <p class="foot__pitch">{SITE.tagline}</p>
       <dl class="foot__contact">
         <div>
@@ -143,6 +150,13 @@ const columns = [
 </footer>
 
 <style>
+  .foot__logo {
+    display: block;
+    width: 11rem;
+    height: auto;
+    margin-left: -0.6rem;
+  }
+
   .foot {
     background: var(--dark);
     color: var(--on-dark);

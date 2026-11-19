@@ -35,6 +35,8 @@ export interface OccasionMeta {
   /** Editorial photograph for the occasion card. Unsplash Licence. */
   image: string;
   imageAlt: string;
+  /** What the occasion's colour says, shown as a swatch with its meaning. */
+  colourCode: { swatch: string; colour: string; meaning: string };
 }
 
 export const OCCASIONS: OccasionMeta[] = [
@@ -47,6 +49,7 @@ export const OCCASIONS: OccasionMeta[] = [
     accent: BRAND.wineBurgundy,
     image: "/img/culture/bride-royal.jpg",
     imageAlt: "A royal bride adorned in auspicious vermilion and pure gold zari Banarasi Katan silk",
+    colourCode: { swatch: "#A52C50", colour: "Red & maroon", meaning: "Saubhagya — a long married life" },
   },
   {
     slug: "festive",
@@ -57,6 +60,7 @@ export const OCCASIONS: OccasionMeta[] = [
     accent: BRAND.antiqueGold,
     image: "/img/culture/diwali-diyas.jpg",
     imageAlt: "A woman in a red and green silk saree with a gold zari border, dressed for a festival",
+    colourCode: { swatch: "#B58A43", colour: "Antique gold", meaning: "Lakshmi's colour — light and plenty" },
   },
   {
     slug: "party-celebration",
@@ -67,6 +71,7 @@ export const OCCASIONS: OccasionMeta[] = [
     accent: BRAND.royalPlum,
     image: "/img/culture/tradition-festival.jpg",
     imageAlt: "Women adorned in elegant festive silk sarees celebrating Indian cultural heritage",
+    colourCode: { swatch: "#6B3A64", colour: "Plum organza", meaning: "Shine, without the weight" },
   },
   {
     slug: "traditional-functions",
@@ -77,6 +82,7 @@ export const OCCASIONS: OccasionMeta[] = [
     accent: BRAND.emeraldGreen,
     image: "/img/culture/pooja-lamps.jpg",
     imageAlt: "Sacred brass oil lamps lit with flower petals for a traditional pooja ritual",
+    colourCode: { swatch: "#E8DAC4", colour: "Ivory & gold", meaning: "Shuddh — pure enough for pooja" },
   },
   {
     slug: "gifting",
@@ -87,6 +93,7 @@ export const OCCASIONS: OccasionMeta[] = [
     accent: BRAND.royalMaroon,
     image: "/img/culture/loom-detail.jpg",
     imageAlt: "Master loom brocade detail with golden zari and authentic weaver card",
+    colourCode: { swatch: "#C2466F", colour: "Rani pink", meaning: "A blessing you can hold" },
   },
 ];
 

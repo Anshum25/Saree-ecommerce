@@ -2,7 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import FilterPanel from "../../components/FilterPanel.astro";
 import ProductCard from "../../components/ProductCard.astro";
-import { PRICE_BANDS, PRODUCTS, SORT_OPTIONS, priceFrom } from "@jaiisha/catalogue";
+import { OCCASIONS, PRICE_BANDS, PRODUCTS, SORT_OPTIONS, priceFrom } from "@jaiisha/catalogue";
 import { SITE } from "../../lib/site.ts";
 
 /**
@@ -41,6 +41,16 @@ const items = PRODUCTS.map((p) => {
     },
   };
 });
+
+/* The occasion shortcuts in the header: each one sets the occasion filter. */
+const quick = OCCASIONS.map((o) => ({
+  slug: o.slug,
+  name: o.name,
+  image: o.image,
+  count: PRODUCTS.filter((p) => p.occasions.includes(o.slug)).length,
+})).filter((o) => o.count > 0);
+
+const colourways = new Set(PRODUCTS.flatMap((p) => p.variants.map((v) => v.colour.slug))).size;
 ---
 
 <Base
@@ -48,21 +58,48 @@ const items = PRODUCTS.map((p) => {
   description="Browse every JAIISHA saree: handloom Katan silk, kadwa bridal, organza, georgette and tissue. Filter by occasion, colour, fabric and price."
   canonicalPath="/sarees"
 >
-  <nav class="crumbs shell" aria-label="Breadcrumb">
-    <ol>
-      <li><a href="/">Home</a></li>
-      <li aria-current="page">All Sarees</li>
-    </ol>
-  </nav>
+  <header class="plp-hero">
+    <div class="shell plp-hero__inner">
+      <div class="plp-hero__text">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="/">Home</a></li>
+            <li aria-current="page">All Sarees</li>
+          </ol>
+        </nav>
+        <p class="eyebrow">The collection</p>
+        <h1 class="plp-hero__title">Every saree <em>on the shelf</em></h1>
+        <p class="plp-hero__lede">
+          {PRODUCTS.length} designs, woven in Varanasi, in {colourways} colourways. Start with what
+          the saree is for — the rest follows.
+        </p>
+      </div>
 
-  <header class="plp-head shell">
-    <p class="eyebrow">The collection</p>
-    <h1 class="plp-head__title">Every saree on the shelf</h1>
-    <p class="lede">
-      {PRODUCTS.length} designs, woven in Varanasi, in {
-        new Set(PRODUCTS.flatMap((p) => p.variants.map((v) => v.colour.slug))).size
-      } colourways. Filter by what the saree is for — the rest follows.
-    </p>
+      <ul class="quick" aria-label="Shop by occasion">
+        <li>
+          <a class="quick__tile is-on" href="/sarees" data-quick="">
+            <span class="quick__arch quick__arch--all" aria-hidden="true">
+              <span class="quick__mark">&#10022;</span>
+            </span>
+            <span class="quick__name">All sarees</span>
+            <span class="quick__count">{PRODUCTS.length}</span>
+          </a>
+        </li>
+        {
+          quick.map((o) => (
+            <li>
+              <a class="quick__tile" href={`/sarees?occasion=${o.slug}`} data-quick={o.slug}>
+                <span class="quick__arch" aria-hidden="true">
+                  <img src={o.image} alt="" width="160" height="200" decoding="async" />
+                </span>
+                <span class="quick__name">{o.name}</span>
+                <span class="quick__count">{o.count}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </header>
 
   <div class="plp shell">
@@ -144,11 +181,46 @@ const items = PRODUCTS.map((p) => {
 </Base>
 
 <style>
-  /* --- breadcrumb & head ------------------------------------------------ */
+  /* --- head: a dark band with the occasion shortcuts --------------------- */
+  .plp-hero {
+    position: relative;
+    margin-bottom: clamp(1.6rem, 3.5vw, 2.8rem);
+    padding-block: clamp(1.6rem, 3.5vw, 2.8rem);
+    background:
+      radial-gradient(45% 80% at 88% 20%, rgba(101, 29, 53, 0.75), transparent 70%),
+      radial-gradient(40% 70% at 10% 100%, rgba(66, 38, 61, 0.8), transparent 70%),
+      linear-gradient(165deg, #2a1119, #1c0f15 60%, #24121a);
+    color: var(--on-dark);
+    overflow: hidden;
+  }
+
+  .plp-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(181, 138, 67, 0.06) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(-45deg, rgba(181, 138, 67, 0.06) 0 1px, transparent 1px 40px);
+    pointer-events: none;
+  }
+
+  .plp-hero__inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: end;
+  }
+
+  .plp-hero__text {
+    display: grid;
+    gap: 0.6rem;
+  }
+
   .crumbs {
-    padding-top: 1.5rem;
-    font-size: 0.74rem;
-    color: var(--ink-faint);
+    margin-bottom: 0.6rem;
+    font-size: 0.72rem;
+    color: rgba(246, 239, 228, 0.55);
   }
 
   .crumbs ol {
@@ -159,22 +231,157 @@ const items = PRODUCTS.map((p) => {
   .crumbs li + li::before {
     content: "/";
     margin-right: 0.5rem;
-    color: var(--line-strong);
+    color: rgba(246, 239, 228, 0.3);
   }
 
   .crumbs a:hover {
-    color: var(--wine);
+    color: var(--gold-light);
   }
 
-  .plp-head {
-    padding-block: clamp(1.2rem, 3vw, 2.5rem);
-    display: grid;
-    gap: 0.6rem;
+  .plp-hero .eyebrow {
+    color: var(--gold-light);
   }
 
-  .plp-head__title {
+  .plp-hero__title {
     font-size: var(--step-4);
     font-weight: 300;
+    line-height: 1.05;
+  }
+
+  .plp-hero__title em {
+    display: block;
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    text-transform: none;
+    color: var(--gold-light);
+  }
+
+  .plp-hero__lede {
+    max-width: 44ch;
+    font-size: 0.92rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--on-dark-soft);
+  }
+
+  /* ---- occasion shortcuts: little Mughal arches -------------------------- */
+  .quick {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(0.5rem, 1.2vw, 1rem);
+  }
+
+  .quick__tile {
+    display: grid;
+    justify-items: center;
+    gap: 0.45rem;
+    text-align: center;
+  }
+
+  .quick__arch {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border: 1px solid rgba(181, 138, 67, 0.4);
+    border-radius: 50% 50% 4px 4px / 36% 36% 2% 2%;
+    background: rgba(181, 138, 67, 0.08);
+    transition:
+      border-color 0.35s var(--ease),
+      translate 0.5s var(--ease-out-soft),
+      box-shadow 0.5s var(--ease);
+  }
+
+  .quick__arch img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.7) brightness(0.75);
+    scale: 1.06;
+    transition:
+      filter 0.5s var(--ease),
+      scale 0.8s var(--ease-out-soft);
+  }
+
+  .quick__arch--all {
+    background:
+      repeating-linear-gradient(45deg, rgba(217, 184, 114, 0.14) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(-45deg, rgba(217, 184, 114, 0.14) 0 1px, transparent 1px 12px),
+      linear-gradient(160deg, #651d35, #3f1020);
+  }
+
+  .quick__mark {
+    font-size: 1.4rem;
+    color: var(--gold-light);
+  }
+
+  .quick__tile:hover .quick__arch,
+  .quick__tile.is-on .quick__arch {
+    border-color: var(--gold-light);
+    translate: 0 -4px;
+    box-shadow:
+      0 16px 30px -14px rgba(0, 0, 0, 0.7),
+      0 0 0 3px rgba(217, 184, 114, 0.18);
+  }
+
+  .quick__tile:hover img,
+  .quick__tile.is-on img {
+    filter: none;
+    scale: 1;
+  }
+
+  .quick__name {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    line-height: 1.2;
+    color: rgba(246, 239, 228, 0.78);
+    transition: color 0.3s var(--ease);
+  }
+
+  .quick__tile:hover .quick__name,
+  .quick__tile.is-on .quick__name {
+    color: var(--on-dark);
+  }
+
+  .quick__count {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+  }
+
+  @media (max-width: 1000px) {
+    .plp-hero__inner {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .quick {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 0.4rem var(--gutter) 0.2rem;
+    }
+    .quick::-webkit-scrollbar {
+      display: none;
+    }
+    .quick > li {
+      flex: 0 0 5.6rem;
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quick__arch,
+    .quick__arch img {
+      transition: none;
+    }
   }
 
   /* --- layout ----------------------------------------------------------- */
@@ -283,25 +490,31 @@ const items = PRODUCTS.map((p) => {
     display: none;
   }
 
-  .toolbar__chips button {
+  /* The chips are built by the script below, so they never receive this
+     component's scoping attribute: style them through :global. */
+  .toolbar__chips :global(button) {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.5rem 0.3rem 0.75rem;
-    border: 1px solid var(--line-strong);
+    gap: 0.45rem;
+    padding: 0.38rem 0.5rem 0.38rem 0.85rem;
+    border: 1px solid var(--wine);
     border-radius: var(--r-pill);
-    background: var(--surface);
-    font-size: 0.76rem;
-  }
-
-  .toolbar__chips button:hover {
-    border-color: var(--wine);
+    background: rgba(101, 29, 53, 0.06);
     color: var(--wine);
+    font-size: 0.76rem;
+    line-height: 1;
+    transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
   }
 
-  .toolbar__chips svg {
-    width: 0.85rem;
-    height: 0.85rem;
+  .toolbar__chips :global(button:hover) {
+    background: var(--wine);
+    color: var(--ivory);
+  }
+
+  .toolbar__chips :global(svg) {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
   }
 
   /* --- grid ------------------------------------------------------------- */
@@ -607,6 +820,33 @@ const items = PRODUCTS.map((p) => {
 
     hydrate();
     apply(false);
+
+    /* --- header shortcuts: one occasion at a time, or none --------------- */
+    const tiles = [...document.querySelectorAll<HTMLAnchorElement>("[data-quick]")];
+    const syncTiles = () => {
+      const on = selected().occasion;
+      tiles.forEach((t) => {
+        const slug = t.dataset.quick ?? "";
+        const live = slug === "" ? on.length === 0 : on.length === 1 && on[0] === slug;
+        t.classList.toggle("is-on", live);
+        if (live) t.setAttribute("aria-current", "true");
+        else t.removeAttribute("aria-current");
+      });
+    };
+    tiles.forEach((t) =>
+      t.addEventListener("click", (e) => {
+        e.preventDefault();
+        const slug = t.dataset.quick ?? "";
+        form
+          .querySelectorAll<HTMLInputElement>('input[name="occasion"]')
+          .forEach((i) => (i.checked = i.value === slug));
+        apply();
+        syncTiles();
+        document.querySelector(".plp")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }),
+    );
+    form.addEventListener("change", syncTiles);
+    syncTiles();
 
     form.addEventListener("change", (e) => {
       // Keep the two sort controls in step.

@@ -268,119 +268,130 @@ const skuIndex = PRODUCTS.flatMap((p) =>
     gap: 1rem;
   }
 
-  .c-item {
+  /* Line items are built by the script below, so they never carry this
+     component's scoping attribute; every rule for them goes through :global,
+     or the photographs render at full size. */
+  .cart-drawer__list :global(.c-item) {
     display: grid;
-    grid-template-columns: 4.8rem 1fr auto;
+    grid-template-columns: 5rem minmax(0, 1fr) auto;
     gap: 0.9rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--line);
+    padding: 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--surface);
     position: relative;
   }
 
-  .c-item__thumb {
+  .cart-drawer__list :global(.c-item__thumb) {
+    display: block;
+    width: 5rem;
     aspect-ratio: 3 / 4;
-    border-radius: var(--r-sm);
+    border-radius: 3px;
     overflow: hidden;
     background: var(--bg-sunk);
-    display: block;
   }
 
-  .c-item__thumb img {
+  .cart-drawer__list :global(.c-item__thumb img) {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
+    object-position: 50% 20%;
+    transition: scale 0.4s var(--ease);
   }
 
-  .c-item__thumb:hover img {
-    transform: scale(1.06);
+  .cart-drawer__list :global(.c-item__thumb:hover img) {
+    scale: 1.06;
   }
 
-  .c-item__info {
+  .cart-drawer__list :global(.c-item__info) {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-width: 0;
   }
 
-  .c-item__title {
+  .cart-drawer__list :global(.c-item__title) {
     font-family: var(--font-display);
-    font-size: 0.94rem;
+    font-size: 0.9rem;
     line-height: 1.3;
     color: var(--ink);
-    text-decoration: none;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .c-item__title:hover {
-    color: var(--maroon);
-  }
-
-  .c-item__meta {
-    font-size: 0.74rem;
-    color: var(--ink-faint);
-    margin-top: 0.2rem;
-  }
-
-  .c-item__price {
-    font-weight: 600;
-    font-size: 0.92rem;
+  .cart-drawer__list :global(.c-item__title:hover) {
     color: var(--wine);
-    margin-top: 0.35rem;
   }
 
-  /* Quantity controls */
-  .c-item__qty {
+  .cart-drawer__list :global(.c-item__meta) {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+  }
+
+  .cart-drawer__list :global(.c-item__price) {
+    margin-top: 0.3rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--wine);
+  }
+
+  .cart-drawer__list :global(.c-item__qty) {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-sm);
-    margin-top: 0.5rem;
     width: fit-content;
+    margin-top: 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
     background: var(--bg);
+    overflow: hidden;
   }
 
-  .c-item__qty-btn {
-    width: 1.6rem;
-    height: 1.6rem;
+  .cart-drawer__list :global(.c-item__qty-btn) {
     display: grid;
     place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 0;
     background: none;
-    border: none;
-    cursor: pointer;
     font-size: 0.95rem;
     color: var(--ink);
-    transition: background 0.2s;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
   }
 
-  .c-item__qty-btn:hover {
+  .cart-drawer__list :global(.c-item__qty-btn:hover) {
     background: rgba(101, 29, 53, 0.1);
     color: var(--wine);
   }
 
-  .c-item__qty-val {
-    padding-inline: 0.5rem;
+  .cart-drawer__list :global(.c-item__qty-val) {
+    min-width: 1.6rem;
     font-size: 0.82rem;
     font-weight: 600;
-    min-width: 1.5rem;
     text-align: center;
   }
 
-  .c-item__del {
+  .cart-drawer__list :global(.c-item__del) {
+    align-self: start;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 50%;
     background: none;
-    border: none;
     color: var(--ink-faint);
     cursor: pointer;
-    padding: 0.4rem;
-    border-radius: var(--r-sm);
-    align-self: start;
-    transition: color 0.2s;
+    transition: color 0.2s, background 0.2s;
   }
 
-  .c-item__del:hover {
-    color: var(--maroon);
+  .cart-drawer__list :global(.c-item__del:hover) {
+    color: var(--wine);
+    background: rgba(101, 29, 53, 0.08);
   }
 
   /* Empty State */

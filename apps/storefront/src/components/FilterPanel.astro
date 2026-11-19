@@ -14,18 +14,32 @@ import {
  * actually asks in a shop. Counts come from the catalogue at build time so a
  * combination that returns nothing can be greyed out rather than leading to an
  * empty grid.
+ *
+ * Each facet is its own collapsible section showing how many of its options
+ * are on. Occasion and fabric are rows with counts, because their names need
+ * the room; colour is a grid of silk swatches; price and weave are short
+ * enough to be pills. The input names and values are the contract with the
+ * listing page's script — the markup around them can change, they cannot.
  */
 const counts = facetCounts();
+const colours = COLOURS.filter((c) => counts.colour[c.slug] > 0);
 ---
 
 <form class="filters" data-filters aria-label="Filter sarees">
   <div class="filters__head">
-    <h2 class="filters__title">Find your saree</h2>
+    <div>
+      <h2 class="filters__title">Refine</h2>
+      <p class="filters__status" data-filter-status>Showing every saree</p>
+    </div>
     <button class="filters__clear" type="button" data-clear>Clear all</button>
   </div>
 
-  <fieldset class="fset">
-    <legend class="fset__legend">Occasion</legend>
+  <details class="fset" open>
+    <summary class="fset__head">
+      <span class="fset__legend">Occasion</span>
+      <span class="fset__on" data-on="occasion" hidden></span>
+      <svg class="fset__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </summary>
     <ul class="fset__list">
       {
         OCCASIONS.map((o) => (
@@ -40,27 +54,39 @@ const counts = facetCounts();
         ))
       }
     </ul>
-  </fieldset>
+  </details>
 
-  <fieldset class="fset">
-    <legend class="fset__legend">Colour</legend>
+  <details class="fset" open>
+    <summary class="fset__head">
+      <span class="fset__legend">Colour</span>
+      <span class="fset__on" data-on="colour" hidden></span>
+      <svg class="fset__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </summary>
     <ul class="fset__colours">
       {
-        COLOURS.filter((c) => counts.colour[c.slug] > 0).map((c) => (
+        colours.map((c) => (
           <li>
-            <label class="chip-colour" title={`${c.name} (${counts.colour[c.slug]})`}>
+            <label class="chip-colour" title={`${c.name} — ${counts.colour[c.slug]} designs`}>
               <input type="checkbox" name="colour" value={c.slug} />
-              <span class="chip-colour__disc" style={`--c:${c.hex}`} aria-hidden="true"></span>
+              <span
+                class="chip-colour__disc"
+                style={`--c:${c.hex};--c2:${c.shadeHex ?? c.hex}`}
+                aria-hidden="true"
+              ></span>
               <span class="chip-colour__name">{c.name}</span>
             </label>
           </li>
         ))
       }
     </ul>
-  </fieldset>
+  </details>
 
-  <fieldset class="fset">
-    <legend class="fset__legend">Fabric</legend>
+  <details class="fset" open>
+    <summary class="fset__head">
+      <span class="fset__legend">Fabric</span>
+      <span class="fset__on" data-on="fabric" hidden></span>
+      <svg class="fset__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </summary>
     <ul class="fset__list">
       {
         FABRICS.map((f) => (
@@ -78,43 +104,47 @@ const counts = facetCounts();
         ))
       }
     </ul>
-  </fieldset>
+  </details>
 
-  <fieldset class="fset">
-    <legend class="fset__legend">Price</legend>
-    <ul class="fset__list">
+  <details class="fset" open>
+    <summary class="fset__head">
+      <span class="fset__legend">Price</span>
+      <span class="fset__on" data-on="price" hidden></span>
+      <svg class="fset__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </summary>
+    <ul class="fset__pills">
       {
         PRICE_BANDS.map((b) => (
           <li>
-            <label class="check" data-disabled={counts.price[b.slug] === 0 ? "true" : "false"}>
+            <label class="pill" data-disabled={counts.price[b.slug] === 0 ? "true" : "false"}>
               <input type="checkbox" name="price" value={b.slug} disabled={counts.price[b.slug] === 0} />
-              <span class="check__box" aria-hidden="true"></span>
               <span class="check__label">{b.label}</span>
-              <span class="check__count">{counts.price[b.slug]}</span>
             </label>
           </li>
         ))
       }
     </ul>
-  </fieldset>
+  </details>
 
-  <fieldset class="fset">
-    <legend class="fset__legend">Weave</legend>
-    <ul class="fset__list">
+  <details class="fset" open>
+    <summary class="fset__head">
+      <span class="fset__legend">Weave</span>
+      <span class="fset__on" data-on="weave" hidden></span>
+      <svg class="fset__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </summary>
+    <ul class="fset__pills">
       {
         WEAVES.map((w) => (
           <li>
-            <label class="check" data-disabled={counts.weave[w.slug] === 0 ? "true" : "false"}>
+            <label class="pill" data-disabled={counts.weave[w.slug] === 0 ? "true" : "false"}>
               <input type="checkbox" name="weave" value={w.slug} disabled={counts.weave[w.slug] === 0} />
-              <span class="check__box" aria-hidden="true"></span>
               <span class="check__label">{w.name}</span>
-              <span class="check__count">{counts.weave[w.slug]}</span>
             </label>
           </li>
         ))
       }
     </ul>
-  </fieldset>
+  </details>
 
   <!-- Sort lives in the toolbar on desktop; this mirror keeps it reachable
        inside the mobile filter drawer. -->
@@ -126,15 +156,52 @@ const counts = facetCounts();
   </fieldset>
 </form>
 
+<script>
+  /* Section badges ("2 on") and the status line under the title. */
+  const form = document.querySelector<HTMLFormElement>("[data-filters]");
+  if (form) {
+    const paint = () => {
+      let total = 0;
+      form.querySelectorAll<HTMLElement>("[data-on]").forEach((badge) => {
+        const n = form.querySelectorAll(`input[name="${badge.dataset.on}"]:checked`).length;
+        total += n;
+        badge.textContent = `${n} on`;
+        badge.hidden = n === 0;
+      });
+      const status = form.querySelector<HTMLElement>("[data-filter-status]");
+      if (status) {
+        status.textContent =
+          total === 0 ? "Showing every saree" : `${total} ${total === 1 ? "filter" : "filters"} applied`;
+      }
+    };
+    form.addEventListener("change", paint);
+    form.addEventListener("reset", () => setTimeout(paint, 0));
+    form.querySelector("[data-clear]")?.addEventListener("click", () => setTimeout(paint, 0));
+    /* The listing page ticks boxes from the URL and from its own chips
+       without firing change events, so repaint after it settles and on any
+       click that might have come from outside the form. */
+    window.addEventListener("load", paint);
+    document.addEventListener("click", () => setTimeout(paint, 0));
+    paint();
+  }
+</script>
+
 <style>
   .filters {
     display: grid;
-    gap: 1.6rem;
+    gap: 0;
+    padding: 1.1rem 1.1rem 0.4rem;
+    background:
+      linear-gradient(160deg, rgba(181, 138, 67, 0.08), transparent 45%),
+      var(--surface);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    box-shadow: 0 18px 40px -28px rgba(66, 20, 36, 0.4);
   }
 
   .filters__head {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
     padding-bottom: 0.9rem;
@@ -144,35 +211,93 @@ const counts = facetCounts();
   .filters__title {
     font-size: var(--step-1);
     font-weight: 400;
+    line-height: 1.1;
+  }
+
+  .filters__status {
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
   }
 
   .filters__clear {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    flex: none;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-faint);
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 1px;
+    color: var(--ink-soft);
+    transition: border-color 0.25s var(--ease), color 0.25s var(--ease), background 0.25s var(--ease);
   }
 
   .filters__clear:hover {
-    color: var(--wine);
+    border-color: var(--wine);
+    background: var(--wine);
+    color: var(--ivory);
   }
 
-  /* --- fieldsets -------------------------------------------------------- */
+  /* --- sections ---------------------------------------------------------- */
   .fset {
     border: 0;
     padding: 0;
     margin: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .fset:last-of-type {
+    border-bottom: 0;
+  }
+
+  .fset__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.95rem 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .fset__head::-webkit-details-marker {
+    display: none;
   }
 
   .fset__legend {
     font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
+    font-weight: 700;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink);
-    margin-bottom: 0.75rem;
+  }
+
+  .fset__on {
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--r-pill);
+    background: var(--wine);
+    color: var(--ivory);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .fset__chev {
+    width: 1rem;
+    height: 1rem;
+    margin-left: auto;
+    color: var(--ink-faint);
+    transition: rotate 0.3s var(--ease);
+  }
+
+  .fset:not([open]) .fset__chev {
+    rotate: -90deg;
+  }
+
+  .fset__list,
+  .fset__pills,
+  .fset__colours {
+    margin-bottom: 1rem;
   }
 
   .fset__list {
@@ -180,23 +305,37 @@ const counts = facetCounts();
     gap: 0.1rem;
   }
 
-  /* --- checkbox rows ---------------------------------------------------- */
+  /* --- checkbox rows ----------------------------------------------------- */
   .check {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: start;
-    gap: 0.6rem;
-    padding: 0.4rem 0;
+    gap: 0.65rem;
+    padding: 0.45rem 0.5rem;
+    margin-inline: -0.5rem;
+    border-radius: var(--r-sm);
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+    transition: background-color 0.2s var(--ease);
   }
 
-  .check[data-disabled="true"] {
+  .check:hover {
+    background: var(--bg-sunk);
+  }
+
+  .check:has(input:checked) {
+    background: rgba(101, 29, 53, 0.06);
+  }
+
+  .check[data-disabled="true"],
+  .pill[data-disabled="true"] {
     opacity: 0.38;
     cursor: not-allowed;
   }
 
-  .check input {
+  .check input,
+  .pill input,
+  .chip-colour input {
     position: absolute;
     opacity: 0;
     width: 0;
@@ -204,10 +343,11 @@ const counts = facetCounts();
   }
 
   .check__box {
-    width: 1rem;
-    height: 1rem;
-    margin-top: 0.2rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: 0.15rem;
     border: 1px solid var(--line-strong);
+    border-radius: 3px;
     background: var(--surface);
     position: relative;
     transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
@@ -217,10 +357,11 @@ const counts = facetCounts();
     content: "";
     position: absolute;
     inset: 0;
-    background: no-repeat center / 0.7rem
+    background: no-repeat center / 0.72rem
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23F4EBDD' stroke-width='3'/%3E%3C/svg%3E");
     opacity: 0;
-    transition: opacity 0.2s var(--ease);
+    scale: 0.6;
+    transition: opacity 0.2s var(--ease), scale 0.25s var(--ease-out-soft);
   }
 
   .check input:checked + .check__box {
@@ -230,6 +371,7 @@ const counts = facetCounts();
 
   .check input:checked + .check__box::after {
     opacity: 1;
+    scale: 1;
   }
 
   .check input:focus-visible + .check__box {
@@ -243,6 +385,10 @@ const counts = facetCounts();
     line-height: 1.45;
   }
 
+  .check:has(input:checked) .check__label {
+    color: var(--wine);
+  }
+
   .check__note {
     font-size: 0.72rem;
     color: var(--ink-faint);
@@ -250,60 +396,121 @@ const counts = facetCounts();
   }
 
   .check__count {
-    font-size: 0.72rem;
+    min-width: 1.5rem;
+    margin-top: 0.1rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--r-pill);
+    background: var(--bg-sunk);
+    font-size: 0.66rem;
+    text-align: center;
     color: var(--ink-faint);
     font-variant-numeric: tabular-nums;
-    margin-top: 0.15rem;
   }
 
-  /* --- colour chips ----------------------------------------------------- */
+  /* --- colour swatches --------------------------------------------------- */
   .fset__colours {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem 0.4rem;
+  }
+
+  .chip-colour {
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .chip-colour__disc {
+    position: relative;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 244, 214, 0.18) 0 1px, transparent 1px 5px),
+      linear-gradient(150deg, var(--c), var(--c2));
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.15),
+      0 0 0 2px var(--surface),
+      0 0 0 3px transparent;
+    transition: box-shadow 0.25s var(--ease), scale 0.3s var(--ease-out-soft);
+  }
+
+  .chip-colour:hover .chip-colour__disc {
+    scale: 1.08;
+  }
+
+  .chip-colour:has(input:checked) .chip-colour__disc {
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.15),
+      0 0 0 2px var(--surface),
+      0 0 0 3.5px var(--gold);
+  }
+
+  /* A small tick on the chosen swatch. */
+  .chip-colour:has(input:checked) .chip-colour__disc::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: no-repeat center / 0.85rem
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23ffffff' stroke-width='3'/%3E%3C/svg%3E");
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+  }
+
+  .chip-colour__name {
+    font-size: 0.66rem;
+    line-height: 1.2;
+    color: var(--ink-soft);
+  }
+
+  .chip-colour:has(input:checked) .chip-colour__name {
+    color: var(--wine);
+    font-weight: 600;
+  }
+
+  .chip-colour:has(input:focus-visible) .chip-colour__disc {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  /* --- pills ------------------------------------------------------------- */
+  .fset__pills {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
   }
 
-  .chip-colour {
+  .pill {
     display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.35rem 0.75rem 0.35rem 0.45rem;
+    padding: 0.4rem 0.85rem;
     border: 1px solid var(--line-strong);
     border-radius: var(--r-pill);
     background: var(--surface);
+    font-size: 0.78rem;
     cursor: pointer;
-    font-size: 0.8rem;
-    transition: border-color 0.25s var(--ease), background-color 0.25s var(--ease),
+    transition:
+      border-color 0.25s var(--ease),
+      background-color 0.25s var(--ease),
       color 0.25s var(--ease);
   }
 
-  .chip-colour input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
+  .pill:hover {
+    border-color: var(--wine);
   }
 
-  .chip-colour__disc {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    background: var(--c);
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
-  }
-
-  .chip-colour:has(input:checked) {
+  .pill:has(input:checked) {
     background: var(--wine);
     border-color: var(--wine);
     color: var(--ivory);
   }
 
-  .chip-colour:has(input:focus-visible) {
+  .pill:has(input:focus-visible) {
     outline: 2px solid var(--gold);
     outline-offset: 2px;
   }
 
-  /* --- select ----------------------------------------------------------- */
+  /* --- select ------------------------------------------------------------ */
   .select {
     width: 100%;
     padding: 0.6rem 0.8rem;
@@ -315,11 +522,22 @@ const counts = facetCounts();
 
   .fset--mobile-sort {
     display: none;
+    padding-block: 0.9rem;
+  }
+
+  .fset--mobile-sort .fset__legend {
+    margin-bottom: 0.6rem;
   }
 
   @media (max-width: 960px) {
     .fset--mobile-sort {
       display: block;
+    }
+    .filters {
+      border: 0;
+      box-shadow: none;
+      padding-inline: 0;
+      background: none;
     }
   }
 </style>

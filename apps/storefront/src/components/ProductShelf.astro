@@ -1,0 +1,316 @@
+---
+import ProductCard from "./ProductCard.astro";
+import { PRODUCTS, bestsellers, newArrivals, priceFrom, queryProducts } from "@jaiisha/catalogue";
+
+/**
+ * The shelf — the homepage's product block.
+ *
+ * Bestsellers and new arrivals used to be two separate sections a dozen
+ * screens apart. A buyer browsing the homepage is asking one question, "show
+ * me the sarees", so they are now one shelf with tabs, sitting directly under
+ * the occasions. Each tab links through to the same cut of the full listing.
+ *
+ * Every panel is rendered at build time; the script only swaps which one is
+ * showing, so the page works, and is indexable, without it.
+ */
+
+const UNDER = 1000000; // ₹10,000, in paise
+
+const tabs = [
+  { key: "best", label: "Bestsellers", href: "/sarees?sort=bestsellers", items: bestsellers(8) },
+  { key: "new", label: "New arrivals", href: "/sarees?sort=newest", items: newArrivals(8) },
+  {
+    key: "bridal",
+    label: "Bridal",
+    href: "/sarees?occasion=wedding-bridal",
+    items: queryProducts({ occasion: "wedding-bridal", sort: "bestsellers", perPage: 8 }).items,
+  },
+  {
+    key: "under",
+    label: "Under ₹10,000",
+    href: "/sarees?price=under-5000&price=5000-10000&sort=price-asc",
+    items: PRODUCTS.filter((p) => priceFrom(p).paise < UNDER)
+      .sort((a, b) => priceFrom(a).paise - priceFrom(b).paise)
+      .slice(0, 8),
+  },
+].filter((t) => t.items.length > 0);
+---
+
+<section class="shelf section" aria-labelledby="shelf-title" data-shelf>
+  <div class="shell">
+    <div class="shelf__head">
+      <div>
+        <p class="eyebrow">The shelf</p>
+        <h2 class="shelf__title" id="shelf-title">Sarees, ready to leave Varanasi</h2>
+      </div>
+
+      <div class="shelf__tabs" role="tablist" aria-label="Browse the shelf" data-tabs>
+        {
+          tabs.map((t, i) => (
+            <button
+              type="button"
+              role="tab"
+              class="shelf__tab"
+              id={`shelf-tab-${t.key}`}
+              aria-controls={`shelf-panel-${t.key}`}
+              aria-selected={i === 0 ? "true" : "false"}
+              tabindex={i === 0 ? "0" : "-1"}
+              data-tab={i}
+              data-href={t.href}
+              data-label={t.label.toLowerCase()}
+            >
+              {t.label}
+              <span class="shelf__n">{t.items.length}</span>
+            </button>
+          ))
+        }
+        <span class="shelf__ink" aria-hidden="true" data-ink />
+      </div>
+    </div>
+
+    {
+      tabs.map((t, i) => (
+        <div
+          class="shelf__panel"
+          role="tabpanel"
+          id={`shelf-panel-${t.key}`}
+          aria-labelledby={`shelf-tab-${t.key}`}
+          hidden={i !== 0}
+          data-panel={i}
+        >
+          <div class="shelf__grid">
+            {t.items.map((p, j) => (
+              <ProductCard product={p} priority={i === 0 && j < 4} />
+            ))}
+          </div>
+        </div>
+      ))
+    }
+
+    <div class="shelf__foot">
+      <a class="btn btn--ghost shelf__all" href={tabs[0]?.href} data-all>
+        <span data-all-label>View all {tabs[0]?.label.toLowerCase()}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-shelf]").forEach((shelf) => {
+    const tabs = [...shelf.querySelectorAll<HTMLButtonElement>("[data-tab]")];
+    const panels = [...shelf.querySelectorAll<HTMLElement>("[data-panel]")];
+    const ink = shelf.querySelector<HTMLElement>("[data-ink]");
+    const all = shelf.querySelector<HTMLAnchorElement>("[data-all]");
+    const allLabel = shelf.querySelector<HTMLElement>("[data-all-label]");
+
+    /* Slide the gold underline under the live tab. */
+    const place = (tab: HTMLElement) => {
+      if (!ink) return;
+      ink.style.width = `${tab.offsetWidth}px`;
+      ink.style.transform = `translateX(${tab.offsetLeft}px)`;
+    };
+
+    const select = (i: number, focus = false) => {
+      tabs.forEach((t, j) => {
+        const on = j === i;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((p, j) => {
+        const on = j === i;
+        p.hidden = !on;
+        if (on) {
+          p.classList.remove("is-entering");
+          void p.offsetWidth;
+          p.classList.add("is-entering");
+        }
+      });
+      const tab = tabs[i];
+      place(tab);
+      if (focus) tab.focus();
+      if (all && tab.dataset.href) all.href = tab.dataset.href;
+      if (allLabel && tab.dataset.label) allLabel.textContent = `View all ${tab.dataset.label}`;
+    };
+
+    tabs.forEach((t, i) => t.addEventListener("click", () => select(i)));
+    shelf.querySelector("[data-tabs]")?.addEventListener("keydown", (e) => {
+      const ev = e as KeyboardEvent;
+      const cur = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
+      let next = cur;
+      if (ev.key === "ArrowRight") next = (cur + 1) % tabs.length;
+      else if (ev.key === "ArrowLeft") next = (cur - 1 + tabs.length) % tabs.length;
+      else if (ev.key === "Home") next = 0;
+      else if (ev.key === "End") next = tabs.length - 1;
+      else return;
+      ev.preventDefault();
+      select(next, true);
+    });
+
+    const first = tabs[0];
+    if (first) {
+      place(first);
+      /* Fonts can change tab widths after load. */
+      document.fonts?.ready.then(() => {
+        const live = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+        if (live) place(live);
+      });
+      window.addEventListener("resize", () => {
+        const live = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+        if (live) place(live);
+      });
+    }
+  });
+</script>
+
+<style>
+  .shelf__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.4rem 2rem;
+    margin-bottom: clamp(1.6rem, 3.2vw, 2.6rem);
+  }
+
+  .shelf__title {
+    margin-top: 0.5rem;
+    font-size: var(--step-3);
+    font-weight: 300;
+  }
+
+  /* ---- tabs -------------------------------------------------------------- */
+  .shelf__tabs {
+    position: relative;
+    display: flex;
+    gap: 0.2rem;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .shelf__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shelf__tab {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    padding: 0.7rem 0.95rem;
+    border: 0;
+    background: none;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.3s var(--ease);
+  }
+
+  .shelf__tab:hover,
+  .shelf__tab[aria-selected="true"] {
+    color: var(--ink);
+  }
+
+  .shelf__n {
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+  }
+
+  .shelf__ink {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 2px;
+    width: 0;
+    background: linear-gradient(90deg, var(--gold), var(--wine));
+    transition:
+      transform 0.55s var(--ease-out-soft),
+      width 0.55s var(--ease-out-soft);
+  }
+
+  /* ---- panels ------------------------------------------------------------ */
+  .shelf__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1.4rem, 2.6vw, 2.4rem) clamp(0.8rem, 1.6vw, 1.5rem);
+  }
+
+  /* On a tab switch, the cards rise in, one after the other. */
+  .shelf__panel.is-entering .shelf__grid > :global(*) {
+    animation: shelfIn 0.7s var(--ease-out-soft) both;
+  }
+
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(2)) { animation-delay: 50ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(3)) { animation-delay: 100ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(4)) { animation-delay: 150ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(5)) { animation-delay: 200ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(6)) { animation-delay: 250ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(7)) { animation-delay: 300ms; }
+  .shelf__panel.is-entering .shelf__grid > :global(*:nth-child(8)) { animation-delay: 350ms; }
+
+  @keyframes shelfIn {
+    from {
+      opacity: 0;
+      translate: 0 22px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .shelf__foot {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .shelf__all svg {
+    width: 1rem;
+    height: 1rem;
+    transition: translate 0.35s var(--ease);
+  }
+
+  .shelf__all:hover svg {
+    translate: 4px 0;
+  }
+
+  @media (max-width: 1000px) {
+    .shelf__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .shelf__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* A grid, not a wrapping flex column: a wrapping column sizes its line
+       to the widest item, which let the tab row push the page wider than
+       the phone instead of scrolling inside itself. */
+    .shelf__head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .shelf__tabs {
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shelf__panel.is-entering .shelf__grid > :global(*) {
+      animation: none;
+    }
+    .shelf__ink {
+      transition: none;
+    }
+  }
+</style>

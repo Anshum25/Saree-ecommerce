@@ -10,6 +10,8 @@ import {
   type ProductQuery,
 } from "@jaiisha/catalogue";
 import { ANNOUNCEMENTS, NAV, SITE } from "../lib/site.ts";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 interface Props {
   /** Lay the header over a dark hero until the page scrolls. */
@@ -56,6 +58,15 @@ const imageFor = (href: string): string | undefined => {
   return modelOf(queryProducts(q).items[0], q.colour);
 };
 
+/* The menu shows photographs at 160px; serve the small square thumbnail
+   from public/img/thumbs when one exists, the full photograph otherwise. */
+const thumb = (src?: string) => {
+  if (!src) return src;
+  const name = src.split("/").pop()?.replace(/\.jpe?g$/i, ".webp");
+  const candidate = `/img/thumbs/${name}`;
+  return name && existsSync(join(process.cwd(), "public", candidate)) ? candidate : src;
+};
+
 const panelFor = (item: (typeof NAV)[number]): Tile[] => {
   if (item.children) {
     return item.children.map((c) => ({ ...c, image: imageFor(c.href) }));
@@ -78,7 +89,10 @@ const panelFor = (item: (typeof NAV)[number]): Tile[] => {
   return [];
 };
 
-const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
+const menus = NAV.map((item) => ({
+  ...item,
+  panel: panelFor(item).map((t) => ({ ...t, image: thumb(t.image) })),
+}));
 ---
 
 <div class="announce">
@@ -138,7 +152,7 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
                             <span class="mega__ring" aria-hidden="true">
                               <span class="mega__photo">
                                 {t.image && (
-                                  <img src={t.image} alt="" width="160" height="160" loading="lazy" decoding="async" />
+                                  <img src={t.image} alt="" width="320" height="320" loading="lazy" decoding="async" data-mega-img />
                                 )}
                               </span>
                             </span>
@@ -269,6 +283,12 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
 
   .announce__item {
     position: absolute;
+    /* One line each: on a phone a wrapped message overlapped the next one
+       as they crossfaded. */
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     opacity: 0;
     translate: 0 6px;
     transition: opacity 0.7s var(--ease), translate 0.7s var(--ease);
@@ -548,11 +568,28 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
     height: 100%;
     overflow: hidden;
     border-radius: 50%;
-    background: #6a1a2c;
+    /* While a photograph is on its way: a soft sheen, never a flat colour. */
+    background:
+      linear-gradient(110deg, transparent 30%, rgba(255, 250, 238, 0.7) 50%, transparent 70%) 0 0 / 250% 100%,
+      #eadcc6;
+    animation: megaShimmer 1.4s linear infinite;
     box-shadow:
       0 0 0 3px #f4e8d6,
       0 0 0 4px rgba(160, 120, 52, 0.6),
       0 12px 24px -10px rgba(66, 20, 36, 0.55);
+  }
+
+  @keyframes megaShimmer {
+    from {
+      background-position: 130% 0, 0 0;
+    }
+    to {
+      background-position: -130% 0, 0 0;
+    }
+  }
+
+  .mega__photo:has(img.is-loaded) {
+    animation: none;
   }
 
   .mega__photo img {
@@ -560,7 +597,14 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
     height: 100%;
     object-fit: cover;
     object-position: 50% 18%;
-    transition: scale 0.8s var(--ease-out-soft);
+    opacity: 0;
+    transition:
+      opacity 0.45s var(--ease),
+      scale 0.8s var(--ease-out-soft);
+  }
+
+  .mega__photo img.is-loaded {
+    opacity: 1;
   }
 
   .mega__tile:hover .mega__photo img {
@@ -870,6 +914,10 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
   }
 
   @media (max-width: 560px) {
+    .announce {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+    }
     .head__tools .icon-btn:nth-child(2) {
       display: none; /* account moves into the drawer */
     }
@@ -907,12 +955,27 @@ const menus = NAV.map((item) => ({ ...item, panel: panelFor(item) }));
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
-  // --- menu panels: fetch their photographs on first approach -----------
-  // They are lazy, and a lazy image inside a hidden panel never starts
-  // loading until the panel opens; start them as soon as the pointer
-  // reaches the bar so the panel opens full.
+  // --- menu panels: photographs ready before anyone hovers -------------
+  // A lazy image inside a hidden panel never starts loading until the panel
+  // opens, which showed empty frames on the first hover. The thumbnails are
+  // small, so fetch them once the page itself has finished loading — or
+  // straight away if the pointer reaches the bar first — and fade each one
+  // in as it arrives.
   const nav = document.querySelector<HTMLElement>(".head__nav");
-  const warm = () => nav?.querySelectorAll<HTMLImageElement>(".mega img").forEach((img) => (img.loading = "eager"));
+  const megaImgs = [...(nav?.querySelectorAll<HTMLImageElement>("[data-mega-img]") ?? [])];
+  megaImgs.forEach((img) => {
+    const done = () => img.classList.add("is-loaded");
+    if (img.complete && img.naturalWidth > 0) done();
+    else img.addEventListener("load", done, { once: true });
+  });
+  let warmed = false;
+  const warm = () => {
+    if (warmed) return;
+    warmed = true;
+    megaImgs.forEach((img) => (img.loading = "eager"));
+  };
+  if (document.readyState === "complete") setTimeout(warm, 300);
+  else window.addEventListener("load", () => setTimeout(warm, 300), { once: true });
   nav?.addEventListener("pointerenter", warm, { once: true });
   nav?.addEventListener("focusin", warm, { once: true });
 

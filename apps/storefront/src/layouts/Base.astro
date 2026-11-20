@@ -68,6 +68,10 @@ const favicon =
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta name="theme-color" content="#651d35" />
+    <!-- The palette is designed light. Saying so stops browsers that
+         auto-darken pages from repainting it, which turned dark text on
+         light grounds into dark text on dark ones. -->
+    <meta name="color-scheme" content="light only" />
     <link rel="icon" href={favicon} />
 
     <meta property="og:type" content="website" />

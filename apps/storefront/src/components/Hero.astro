@@ -2,52 +2,46 @@
 import { OCCASIONS } from "@jaiisha/catalogue";
 
 /**
- * Hero — the whole argument for the saree, on one screen.
+ * Hero — the cinema.
  *
- * The brief is first impression. A visitor who has never heard of the house
- * should get, without scrolling, every reason the page exists: why a woman
- * wears a saree at all, what the cloth carries culturally, and that each
- * occasion asks for its own weave and its own colour. So the first viewport is
- * a three-column stage with a base, and nothing in it is filler:
+ * One photograph fills the whole first screen, edge to edge, and the words sit
+ * over it on a wash of wine silk. Five occasions take turns. Each new
+ * photograph does not fade in: it falls into place in six vertical pleats,
+ * alternately from above and below, the way the pleats of a saree drop when
+ * it is let go — the one transition on the page that could only belong to a
+ * saree shop.
  *
- *   copy   — the one fixed claim, and the way in to the shop
- *   stage  — the Mughal arch, one occasion at a time
- *   rail   — every occasion, the live one opened to its tradition
- *   base   — four reasons she wears it, and a ticker of what the cloth means
+ *   left        the claim, and the line of tradition for the live occasion
+ *   right edge  the occasion's name in Hindi, drawn tall and hollow in gold
+ *   foot        five numbered occasions, each with its clock, then the ticker
  *
- * One index drives the stage, the rail and the accent colour that washes the
- * whole field, so the page changes temperature with the
- * occasion. Scenes come from the catalogue taxonomy itself (OCCASIONS), so the
- * copy here cannot drift out of sync with the shop.
- *
- * Motion, in order of appearance: a length of silk is drawn off the screen on
- * every load; the headline rises line by line while a wave
- * of light runs through the zari word; each occasion opens out of the arch in
- * a lozenge, the buti shape, with a gold flash; a silk pallu ripples behind
- * the stage; the stage tilts toward the cursor. Under
- * prefers-reduced-motion none of that runs — the rotator waits for the rail
- * and the copy is simply there.
+ * One index drives all of it. Scenes come from the catalogue taxonomy
+ * (OCCASIONS), so the copy cannot drift from the shop. Under
+ * prefers-reduced-motion nothing advances on its own and nothing decorative
+ * moves; the occasions still change when chosen.
  */
+
+/* Each occasion's name as it is said at home. */
+const DEVA: Record<string, string> = {
+  "wedding-bridal": "विवाह",
+  festive: "त्योहार",
+  "party-celebration": "उत्सव",
+  "traditional-functions": "पूजा",
+  gifting: "उपहार",
+};
 
 const scenes = OCCASIONS.map((o) => ({
   slug: o.slug,
   name: o.name,
-  blurb: o.blurb,
   tradition: o.tradition,
   accent: o.accent,
   image: o.image,
   imageAlt: o.imageAlt,
-  /* The occasion's colour, shown as the diamond beside it in the rail. */
-  swatch: o.colourCode.swatch,
+  deva: DEVA[o.slug] ?? o.name,
 }));
 
-/* Why she wears it. Four reasons, each one a word she would actually use. */
-const reasons = [
-  { deva: "अखण्ड", title: "Unstitched", line: "No cut, no seam — cloth pure enough for a temple." },
-  { deva: "शुभ", title: "Auspicious", line: "Red for a bride, ivory for pooja, green for Teej." },
-  { deva: "विरासत", title: "Inherited", line: "Folded in muslin, passed down to a daughter." },
-  { deva: "सदाबहार", title: "Ageless", line: "Fits every body, every age, every decade." },
-];
+/* The pleats a photograph falls in as. */
+const PLEATS = 6;
 
 /* The ticker: what the cloth carries, in the language it carries it in. */
 const values = [
@@ -61,6 +55,7 @@ const values = [
 ];
 
 const zariWord = "unstitched".split("");
+const pad = (n: number) => String(n).padStart(2, "0");
 ---
 
 <!-- ================= the drape =================
@@ -94,77 +89,44 @@ const zariWord = "unstitched".split("");
   }
 </script>
 
+
 <section class="hero" aria-labelledby="hero-title" data-hero style={`--accent:${scenes[0].accent}`}>
-  <div class="hero__bg" aria-hidden="true"></div>
-  <div class="hero__spot" aria-hidden="true"></div>
-
-  <!-- A silk pallu rippling behind the stage, gold zari along both edges. -->
-  <svg class="pallu" viewBox="0 0 1440 800" preserveAspectRatio="none" aria-hidden="true" data-pallu>
-    <defs>
-      <linearGradient id="pallu-fill" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" style="stop-color: var(--accent); stop-opacity: 0" />
-        <stop offset="0.35" style="stop-color: var(--accent); stop-opacity: 0.22" />
-        <stop offset="1" style="stop-color: var(--accent); stop-opacity: 0.08" />
-      </linearGradient>
-    </defs>
-    <path fill="url(#pallu-fill)">
-      <animate
-        attributeName="d"
-        dur="16s"
-        repeatCount="indefinite"
-        calcMode="spline"
-        keyTimes="0;0.33;0.66;1"
-        keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
-        values="M -80 600 C 260 500 520 760 820 560 C 1060 400 1260 300 1520 250 L 1520 340 C 1260 390 1080 520 840 660 C 540 840 260 600 -80 700 Z;
-                M -80 640 C 300 560 520 640 820 520 C 1080 420 1240 360 1520 300 L 1520 390 C 1250 450 1100 600 840 620 C 560 700 280 660 -80 740 Z;
-                M -80 580 C 240 640 560 700 820 600 C 1040 520 1280 260 1520 220 L 1520 310 C 1300 340 1060 620 840 700 C 520 800 240 720 -80 680 Z;
-                M -80 600 C 260 500 520 760 820 560 C 1060 400 1260 300 1520 250 L 1520 340 C 1260 390 1080 520 840 660 C 540 840 260 600 -80 700 Z"
-      />
-    </path>
-    <path class="pallu__zari" fill="none">
-      <animate
-        attributeName="d"
-        dur="16s"
-        repeatCount="indefinite"
-        calcMode="spline"
-        keyTimes="0;0.33;0.66;1"
-        keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
-        values="M -80 600 C 260 500 520 760 820 560 C 1060 400 1260 300 1520 250;
-                M -80 640 C 300 560 520 640 820 520 C 1080 420 1240 360 1520 300;
-                M -80 580 C 240 640 560 700 820 600 C 1040 520 1280 260 1520 220;
-                M -80 600 C 260 500 520 760 820 560 C 1060 400 1260 300 1520 250"
-      />
-    </path>
-    <path class="pallu__zari pallu__zari--low" fill="none">
-      <animate
-        attributeName="d"
-        dur="16s"
-        repeatCount="indefinite"
-        calcMode="spline"
-        keyTimes="0;0.33;0.66;1"
-        keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
-        values="M -80 700 C 260 600 540 840 840 660 C 1080 520 1260 390 1520 340;
-                M -80 740 C 280 660 560 700 840 620 C 1100 600 1250 450 1520 390;
-                M -80 680 C 240 720 520 800 840 700 C 1060 620 1300 340 1520 310;
-                M -80 700 C 260 600 540 840 840 660 C 1080 520 1260 390 1520 340"
-      />
-    </path>
-  </svg>
-
-  <!-- Drifting gold buti — the small motif scattered across a Banarasi field. -->
-  <div class="buti" aria-hidden="true">
-    {Array.from({ length: 16 }).map((_, i) => <span style={`--i:${i}`} />)}
+  <!-- ================= the picture: one layer per occasion, cut into pleats ================= -->
+  <div class="screen" aria-hidden="true">
+    {
+      scenes.map((s, i) => (
+        <div class:list={["layer", i === 0 && "is-on"]} data-layer={i}>
+          {Array.from({ length: PLEATS }).map((_, p) => (
+            <div class="pleat" style={`--p:${p}`}>
+              <img
+                src={s.image}
+                alt=""
+                width="1600"
+                height="2400"
+                fetchpriority={i === 0 ? "high" : "low"}
+                decoding="async"
+              />
+            </div>
+          ))}
+        </div>
+      ))
+    }
+    <div class="screen__shade"></div>
+    <div class="screen__grain"></div>
   </div>
 
+  <!-- The live photograph, described once for screen readers. -->
+  <p class="visually-hidden" data-alt>{scenes[0].imageAlt}</p>
+
+  <!-- ================= the words ================= -->
   <div class="shell hero__grid">
-    <!-- ================= copy ================= -->
-    <div class="hero__copy">
-      <p class="hero__eyebrow rise" style="--d:0ms">
-        <span class="hero__dot" aria-hidden="true"></span>
+    <div class="copy">
+      <p class="copy__eyebrow rise" style="--d:0ms">
+        <span class="copy__dot" aria-hidden="true"></span>
         Handwoven in Varanasi, since the 1400s
       </p>
 
-      <h1 class="hero__title" id="hero-title">
+      <h1 class="copy__title" id="hero-title">
         <span class="line"><span class="line__in" style="--d:80ms">Six metres,</span></span>
         <span class="line"
           ><span class="line__in" style="--d:190ms"
@@ -176,141 +138,83 @@ const zariWord = "unstitched".split("");
         <span class="line"><span class="line__in" style="--d:300ms">never out of place.</span></span>
       </h1>
 
-      <p class="hero__lede rise" style="--d:440ms">
-        No seam, no size, no season it expires in. A saree fits every woman who wears it and every
-        age she wears it at — so a bride, her mother and her grandmother can all wear the same six
-        yards of silk.
-      </p>
+      <div class="now rise" style="--d:460ms">
+        <p class="now__label">
+          Worn today for
+          <span class="now__name" data-name>{scenes[0].name}</span>
+        </p>
+        <p class="now__tradition" data-tradition>{scenes[0].tradition}</p>
+      </div>
 
-      <div class="hero__actions rise" style="--d:700ms">
-        <a class="btn btn--gold hero__cta" href="/sarees">
-          Shop the collection
+      <div class="copy__actions rise" style="--d:600ms">
+        <a class="btn btn--gold copy__cta" href={`/occasion/${scenes[0].slug}`} data-link>
+          <span data-link-label>Shop {scenes[0].name.toLowerCase()}</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"
             ><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" /></svg
           >
         </a>
-        <a class="btn btn--ghost" href="/craft">How a Banarasi is woven</a>
+        <a class="btn copy__alt" href="/sarees">Every saree</a>
       </div>
     </div>
 
-    <!-- ================= stage ================= -->
-    <div class="hero__stage" data-tilt>
-      <figure class="arch">
-        <div class="arch__frame">
-          <div class="arch__stack">
-            {
-              scenes.map((s, i) => (
-                <img
-                  class={`arch__img${i === 0 ? " is-on" : ""}`}
-                  data-shot={i}
-                  src={s.image}
-                  alt={s.imageAlt}
-                  aria-hidden={i === 0 ? "false" : "true"}
-                  width="1600"
-                  height="2400"
-                  fetchpriority={i === 0 ? "high" : "low"}
-                  decoding="async"
-                />
-              ))
-            }
-            <span class="arch__burst" aria-hidden="true" data-burst />
-            <span class="arch__wash" aria-hidden="true" />
-            <span class="arch__glint" aria-hidden="true" />
-          </div>
-
-          <figcaption class="arch__cap">
-            <span class="arch__worn">Worn for</span>
-            <span class="arch__name" data-cap>{scenes[0].name}</span>
-            <span class="arch__city">Varanasi · Uttar Pradesh</span>
-          </figcaption>
-        </div>
-        <span class="arch__keystone" aria-hidden="true" />
-        <span class="arch__ring" aria-hidden="true" />
-      </figure>
+    <!-- The occasion's name in Hindi, tall and hollow, down the right edge. -->
+    <div class="deva" aria-hidden="true">
+      {
+        scenes.map((s, i) => (
+          <span class:list={["deva__word", i === 0 && "is-on"]} data-deva={i} lang="hi">
+            {s.deva}
+          </span>
+        ))
+      }
     </div>
-
-    <!-- ================= occasions rail ================= -->
-    <aside class="orail" aria-label="Sarees by occasion">
-      <p class="orail__label rise" style="--d:380ms">
-        <span>Every occasion</span>
-        <span class="orail__label-em">asks for its own saree</span>
-      </p>
-      <ol class="orail__list" data-rail>
-        {
-          scenes.map((s, i) => (
-            <li
-              class={`orail__item rise${i === 0 ? " is-on" : ""}`}
-              style={`--d:${460 + i * 80}ms; --accent:${s.accent}`}
-              data-item={i}
-            >
-              <button
-                type="button"
-                class="orail__head"
-                data-pick={i}
-                aria-expanded={i === 0 ? "true" : "false"}
-                aria-controls={`rail-body-${i}`}
-              >
-                <span class="orail__no">{String(i + 1).padStart(2, "0")}</span>
-                <span class="orail__name">{s.name}</span>
-                <span class="orail__swatch" style={`--sw:${s.swatch}`} aria-hidden="true" />
-              </button>
-              <span class="orail__bar" aria-hidden="true">
-                <i />
-              </span>
-              <div class="orail__body" id={`rail-body-${i}`}>
-                <div class="orail__inner">
-                  <p class="orail__tradition">{s.tradition}</p>
-                  <a class="orail__link" href={`/occasion/${s.slug}`} tabindex={i === 0 ? undefined : "-1"}>
-                    See {s.name.toLowerCase()} sarees
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.4" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </li>
-          ))
-        }
-      </ol>
-      <p class="orail__wide" data-wide>{scenes[0].tradition}</p>
-    </aside>
   </div>
 
-  <!-- ================= base: why she wears it + ticker ================= -->
-  <div class="hero__base">
-    <div class="shell">
-      <div class="why rise" style="--d:760ms">
-        <p class="why__label">Why every Indian woman owns one</p>
-        <ul class="why__grid">
-          {
-            reasons.map((r, i) => (
-              <li class="why__card" style={`--i:${i}`}>
-                <span class="why__deva" lang="hi">{r.deva}</span>
-                <span class="why__title">{r.title}</span>
-                <span class="why__line">{r.line}</span>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
+  <!-- ================= the occasions ================= -->
+  <div class="shell reel rise" style="--d:720ms">
+    <div class="reel__list" role="tablist" aria-label="Choose an occasion" data-tabs>
+      {
+        scenes.map((s, i) => (
+          <button
+            type="button"
+            role="tab"
+            class="reel__tab"
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? "0" : "-1"}
+            data-tab={i}
+          >
+            <span class="reel__clock" aria-hidden="true"><i /></span>
+            <span class="reel__no">{pad(i + 1)}</span>
+            <span class="reel__name">{s.name}</span>
+          </button>
+        ))
+      }
     </div>
+    <div class="reel__nav">
+      <button class="reel__arrow" type="button" aria-label="Previous occasion" data-step="-1">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+      </button>
+      <button class="reel__arrow" type="button" aria-label="Next occasion" data-step="1">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+      </button>
+    </div>
+  </div>
 
-    <div class="values" aria-label="What a Banarasi carries">
-      <div class="values__track">
-        {
-          [0, 1].map((dup) => (
-            <ul class="values__list" aria-hidden={dup === 1 ? "true" : "false"}>
-              {values.map((v) => (
-                <li>
-                  <span class="values__deva" lang="hi">{v.deva}</span>
-                  <span class="values__en">{v.en}</span>
-                  <span class="values__sep" aria-hidden="true">◆</span>
-                </li>
-              ))}
-            </ul>
-          ))
-        }
-      </div>
+  <!-- ================= the ticker ================= -->
+  <div class="values" aria-label="What a Banarasi carries">
+    <div class="values__track">
+      {
+        [0, 1].map((dup) => (
+          <ul class="values__list" aria-hidden={dup === 1 ? "true" : "false"}>
+            {values.map((v) => (
+              <li>
+                <span class="values__deva" lang="hi">{v.deva}</span>
+                <span class="values__en">{v.en}</span>
+                <span class="values__sep" aria-hidden="true">◆</span>
+              </li>
+            ))}
+          </ul>
+        ))
+      }
     </div>
   </div>
 
@@ -319,9 +223,11 @@ const zariWord = "unstitched".split("");
     data-scenes
     set:html={JSON.stringify(
       scenes.map((s) => ({
+        slug: s.slug,
         name: s.name,
         tradition: s.tradition,
         accent: s.accent,
+        alt: s.imageAlt,
       })),
     )}
   />
@@ -330,15 +236,11 @@ const zariWord = "unstitched".split("");
 <script>
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  /* ------------------------------------------------------------------ *
-   * The rotator. One index drives the arch, the rail
-   * and the accent colour of the whole field.
-   * ------------------------------------------------------------------ */
   (() => {
     const hero = document.querySelector<HTMLElement>("[data-hero]");
     if (!hero) return;
 
-    type Scene = { name: string; tradition: string; accent: string };
+    type Scene = { slug: string; name: string; tradition: string; accent: string; alt: string };
     let scenes: Scene[] = [];
     try {
       scenes = JSON.parse(hero.querySelector("[data-scenes]")?.textContent ?? "[]") as Scene[];
@@ -347,19 +249,28 @@ const zariWord = "unstitched".split("");
     }
     if (scenes.length < 2) return;
 
-    const shots = [...hero.querySelectorAll<HTMLElement>("[data-shot]")];
-    const items = [...hero.querySelectorAll<HTMLElement>("[data-item]")];
-    const picks = [...hero.querySelectorAll<HTMLButtonElement>("[data-pick]")];
-    const cap = hero.querySelector<HTMLElement>("[data-cap]");
-    const burst = hero.querySelector<HTMLElement>("[data-burst]");
-    const wide = hero.querySelector<HTMLElement>("[data-wide]");
+    const layers = [...hero.querySelectorAll<HTMLElement>("[data-layer]")];
+    const tabs = [...hero.querySelectorAll<HTMLButtonElement>("[data-tab]")];
+    const words = [...hero.querySelectorAll<HTMLElement>("[data-deva]")];
+    const name = hero.querySelector<HTMLElement>("[data-name]");
+    const tradition = hero.querySelector<HTMLElement>("[data-tradition]");
+    const alt = hero.querySelector<HTMLElement>("[data-alt]");
+    const link = hero.querySelector<HTMLAnchorElement>("[data-link]");
+    const linkLabel = hero.querySelector<HTMLElement>("[data-link-label]");
 
-    /* Matches the rail bar's fill duration in CSS. */
-    const HOLD = 6500;
+    /* Matches the tab clock's fill duration in CSS. */
+    const HOLD = 7000;
     let index = 0;
     let timer = 0;
     let swap = 0;
     let paused = false;
+
+    const replay = (el: HTMLElement | null | undefined) => {
+      if (!el) return;
+      el.style.animation = "none";
+      void el.offsetWidth;
+      el.style.animation = "";
+    };
 
     const stop = () => {
       window.clearTimeout(timer);
@@ -372,69 +283,74 @@ const zariWord = "unstitched".split("");
       timer = window.setTimeout(() => show(index + 1), HOLD);
     };
 
-    /* Restart a CSS animation from its first frame. */
-    const replay = (el: HTMLElement | null | undefined) => {
-      if (!el) return;
-      el.style.animation = "none";
-      void el.offsetWidth;
-      el.style.animation = "";
-    };
-
     const show = (next: number) => {
       const prev = index;
       index = ((next % scenes.length) + scenes.length) % scenes.length;
       if (index === prev) return start();
       const scene = scenes[index];
 
-      shots.forEach((el, i) => {
-        el.classList.toggle("is-on", i === index);
+      /* The outgoing photograph stays beneath while the new one's pleats fall. */
+      layers.forEach((el, i) => {
         el.classList.toggle("is-prev", i === prev);
-        el.setAttribute("aria-hidden", i === index ? "false" : "true");
+        el.classList.toggle("is-on", i === index);
       });
-
-      items.forEach((el, i) => {
+      words.forEach((el, i) => {
+        el.classList.toggle("is-on", i === index);
+        el.classList.toggle("is-out", i === prev);
+      });
+      tabs.forEach((el, i) => {
         const on = i === index;
-        el.classList.toggle("is-on", on);
-        picks[i]?.setAttribute("aria-expanded", on ? "true" : "false");
-        const link = el.querySelector<HTMLAnchorElement>(".orail__link");
-        if (link) {
-          if (on) link.removeAttribute("tabindex");
-          else link.setAttribute("tabindex", "-1");
-        }
+        el.setAttribute("aria-selected", on ? "true" : "false");
+        el.tabIndex = on ? 0 : -1;
       });
-      replay(items[index]?.querySelector<HTMLElement>(".orail__bar i"));
+      replay(tabs[index]?.querySelector<HTMLElement>(".reel__clock i"));
 
+      /* After the first scene, pleats fall the moment they are asked to. */
+      hero.style.setProperty("--pd", "0s");
       hero.style.setProperty("--accent", scene.accent);
-      replay(burst);
+      if (alt) alt.textContent = scene.alt;
+      if (link) link.href = `/occasion/${scene.slug}`;
+      if (linkLabel) linkLabel.textContent = `Shop ${scene.name.toLowerCase()}`;
 
-      /* Swap the words behind a short fade. */
       window.clearTimeout(swap);
-      cap?.classList.add("is-out");
-      wide?.classList.add("is-out");
+      name?.classList.add("is-out");
+      tradition?.classList.add("is-out");
       swap = window.setTimeout(() => {
-        if (cap) cap.textContent = scene.name;
-        if (wide) wide.textContent = scene.tradition;
-        cap?.classList.remove("is-out");
-        wide?.classList.remove("is-out");
+        if (name) name.textContent = scene.name;
+        if (tradition) tradition.textContent = scene.tradition;
+        name?.classList.remove("is-out");
+        tradition?.classList.remove("is-out");
       }, 280);
 
       start();
     };
 
-    picks.forEach((btn, i) => btn.addEventListener("click", () => show(i)));
-
-    /* Pause while someone is reading the rail; keep going over the stage. */
-    const rail = hero.querySelector("[data-rail]");
-    rail?.addEventListener("pointerenter", () => {
-      paused = true;
-      hero.classList.add("is-paused");
-      stop();
+    tabs.forEach((tab, i) => tab.addEventListener("click", () => show(i)));
+    hero.querySelectorAll<HTMLButtonElement>("[data-step]").forEach((b) =>
+      b.addEventListener("click", () => show(index + Number(b.dataset.step))),
+    );
+    hero.querySelector("[data-tabs]")?.addEventListener("keydown", (e) => {
+      const ev = e as KeyboardEvent;
+      if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+      ev.preventDefault();
+      show(index + (ev.key === "ArrowRight" ? 1 : -1));
+      tabs[index]?.focus();
     });
-    rail?.addEventListener("pointerleave", () => {
-      paused = false;
-      hero.classList.remove("is-paused");
-      replay(items[index]?.querySelector<HTMLElement>(".orail__bar i"));
-      start();
+
+    /* Hold still while someone is reading. */
+    const copy = hero.querySelector<HTMLElement>(".copy");
+    [copy, hero.querySelector<HTMLElement>(".reel")].forEach((el) => {
+      el?.addEventListener("pointerenter", () => {
+        paused = true;
+        hero.classList.add("is-paused");
+        stop();
+      });
+      el?.addEventListener("pointerleave", () => {
+        paused = false;
+        hero.classList.remove("is-paused");
+        replay(tabs[index]?.querySelector<HTMLElement>(".reel__clock i"));
+        start();
+      });
     });
 
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
@@ -443,47 +359,31 @@ const zariWord = "unstitched".split("");
     /* Hold the first scene until the drape has cleared. */
     const intro = document.documentElement.getAttribute("data-hero-intro") === "seen" ? 0 : 1400;
     window.setTimeout(() => {
-      replay(items[0]?.querySelector<HTMLElement>(".orail__bar i"));
+      replay(tabs[0]?.querySelector<HTMLElement>(".reel__clock i"));
       start();
     }, intro);
   })();
 
-  /* ------------------------------------------------------------------ *
-   * The stage leans toward the cursor, and a soft zari light follows it.
-   * ------------------------------------------------------------------ */
+  /* The photograph drifts a little against the cursor. */
   (() => {
     const hero = document.querySelector<HTMLElement>("[data-hero]");
     if (!hero || reduce.matches || !window.matchMedia("(pointer: fine)").matches) return;
-
     let frame = 0;
-    let x = 0;
-    let y = 0;
     hero.addEventListener("pointermove", (e) => {
       const r = hero.getBoundingClientRect();
-      x = e.clientX - r.left;
-      y = e.clientY - r.top;
+      const x = ((e.clientX - r.left) / r.width) * 2 - 1;
+      const y = ((e.clientY - r.top) / r.height) * 2 - 1;
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        hero.style.setProperty("--px", `${x}px`);
-        hero.style.setProperty("--py", `${y}px`);
-        hero.style.setProperty("--mx", ((x / r.width) * 2 - 1).toFixed(3));
-        hero.style.setProperty("--my", ((y / r.height) * 2 - 1).toFixed(3));
+        hero.style.setProperty("--mx", x.toFixed(3));
+        hero.style.setProperty("--my", y.toFixed(3));
       });
     });
     hero.addEventListener("pointerleave", () => {
       hero.style.setProperty("--mx", "0");
       hero.style.setProperty("--my", "0");
     });
-  })();
-
-  /* Under reduced motion, freeze the pallu (SMIL ignores CSS). */
-  (() => {
-    const pallu = document.querySelector<SVGSVGElement>("[data-pallu]");
-    if (!pallu) return;
-    const sync = () => (reduce.matches ? pallu.pauseAnimations() : pallu.unpauseAnimations());
-    sync();
-    reduce.addEventListener("change", sync);
   })();
 </script>
 
@@ -638,192 +538,28 @@ const zariWord = "unstitched".split("");
   }
 
   /* ================================================================= *
-   * the field
+   * the hero: one photograph, edge to edge
    * ================================================================= */
   .hero {
     /* Entrance offset: waits for the drape, or not at all. */
     --t0: 1.35s;
+    /* Delay before the first pleats fall; the script zeroes it after. */
+    --pd: var(--t0);
     --accent: #651d35;
     --mx: 0;
     --my: 0;
-    --px: 70%;
-    --py: 40%;
     position: relative;
-    isolation: isolate;
-    display: flex;
-    flex-direction: column;
-    /* A light stage. The dark-theme tokens the rules below were written
-       against are re-pointed here, so the whole section turns with them. */
-    --on-dark: var(--ink);
-    --on-dark-soft: var(--ink-soft);
-    --gold-light: #7a561c;
-    --dark: var(--ivory-warm);
-    --dark-raised: #ffffff;
-    /* Exactly one screen under the announcement bar and the header. */
+    display: grid;
+    grid-template-rows: 1fr auto auto;
     min-height: calc(100svh - 2.4rem - 5.2rem);
-    padding-top: clamp(1rem, 3vh, 2rem);
-    background: #e3cfb0;
-    color: var(--ink);
+    background: #1c0f15;
+    color: #fbf4e6;
     overflow: hidden;
+    isolation: isolate;
   }
 
   :global(:root[data-hero-intro="seen"]) .hero {
     --t0: 0s;
-  }
-
-  /* Accent bloom behind the stage, plus a faint zari lattice over the field. */
-  .hero__bg {
-    position: absolute;
-    inset: -10%;
-    z-index: -3;
-    background:
-      radial-gradient(46% 52% at 56% 40%, color-mix(in oklab, var(--accent) 26%, transparent), transparent 70%),
-      radial-gradient(40% 45% at 92% 70%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 70%),
-      radial-gradient(55% 45% at 6% 92%, rgba(122, 86, 28, 0.16), transparent 70%),
-      linear-gradient(165deg, #ead8bc 0%, #e0c8a4 55%, #d5ba92 100%);
-    transition: background 1.4s var(--ease);
-    animation: bloom 22s var(--ease) infinite alternate;
-  }
-
-  @keyframes bloom {
-    to {
-      transform: scale(1.08) translate3d(-1.5%, 1%, 0);
-    }
-  }
-
-  .hero__bg::after {
-    content: "";
-    position: absolute;
-    inset: -40%;
-    background-image:
-      repeating-linear-gradient(45deg, rgba(181, 138, 67, 0.12) 0 1px, transparent 1px 42px),
-      repeating-linear-gradient(-45deg, rgba(181, 138, 67, 0.12) 0 1px, transparent 1px 42px);
-    mask-image: radial-gradient(80% 80% at 62% 40%, #000 20%, transparent 85%);
-    animation: jaal 90s linear infinite;
-  }
-
-  @keyframes jaal {
-    to {
-      transform: translate3d(42px, 42px, 0);
-    }
-  }
-
-  /* Zari light that follows the cursor. */
-  .hero__spot {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: radial-gradient(
-      420px circle at var(--px) var(--py),
-      rgba(217, 184, 114, 0.11),
-      transparent 65%
-    );
-  }
-
-  /* ================= pallu ================= */
-  .pallu {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    pointer-events: none;
-    opacity: 0;
-    animation: fadeIn 2s var(--ease) calc(var(--t0) + 0.4s) forwards;
-    /* Keep the cloth away from the headline. */
-    mask-image: linear-gradient(90deg, transparent 0%, #000 38%, #000 100%);
-  }
-
-  @keyframes fadeIn {
-    to {
-      opacity: 1;
-    }
-  }
-
-  .pallu__zari {
-    stroke: var(--gold-light);
-    stroke-width: 1.6;
-    stroke-dasharray: 2 7;
-    opacity: 0.7;
-    vector-effect: non-scaling-stroke;
-    animation: stitch 3s linear infinite;
-  }
-
-  .pallu__zari--low {
-    opacity: 0.4;
-    animation-direction: reverse;
-  }
-
-  @keyframes stitch {
-    to {
-      stroke-dashoffset: -36;
-    }
-  }
-
-  /* ================= drifting buti ================= */
-  .buti {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .buti span {
-    position: absolute;
-    left: calc((var(--i) * 6.2%) + 2%);
-    bottom: -6%;
-    width: 7px;
-    height: 7px;
-    rotate: 45deg;
-    background: linear-gradient(135deg, var(--gold-light), rgba(181, 138, 67, 0.2));
-    box-shadow: 0 0 10px rgba(217, 184, 114, 0.5);
-    opacity: 0;
-    animation: drift calc(17s + (var(--i) * 1.5s)) linear infinite;
-    animation-delay: calc(var(--i) * -2.4s);
-  }
-
-  .buti span:nth-child(3n) {
-    width: 4px;
-    height: 4px;
-  }
-
-  .buti span:nth-child(4n) {
-    width: 10px;
-    height: 10px;
-    background: none;
-    box-shadow: none;
-    border: 1px solid rgba(217, 184, 114, 0.5);
-  }
-
-  @keyframes drift {
-    0% {
-      transform: translate3d(0, 0, 0) rotate(0deg);
-      opacity: 0;
-    }
-    12% {
-      opacity: 0.6;
-    }
-    80% {
-      opacity: 0.3;
-    }
-    100% {
-      transform: translate3d(4vw, -106vh, 0) rotate(220deg);
-      opacity: 0;
-    }
-  }
-
-  /* ================= grid ================= */
-  .hero__grid {
-    /* The hero spends the full width: no space wasted at the sides. */
-    max-width: 1640px;
-    flex: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1.22fr) minmax(0, 0.9fr) minmax(15rem, 0.7fr);
-    gap: clamp(1.5rem, 3.2vw, 3.4rem);
-    align-items: center;
-    padding-bottom: clamp(1rem, 2.4vh, 1.8rem);
   }
 
   /* ================= entrance ================= */
@@ -841,50 +577,216 @@ const zariWord = "unstitched".split("");
     }
   }
 
-  /* ================= copy ================= */
-  .hero__copy {
-    display: grid;
-    justify-items: start;
+  /* ================================================================= *
+   * the picture
+   * ================================================================= */
+  .screen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
   }
 
-  .hero__eyebrow {
+  .layer {
+    position: absolute;
+    inset: -2%;
+    display: flex;
+    visibility: hidden;
+    transform: translate(calc(var(--mx) * -12px), calc(var(--my) * -8px));
+    transition: transform 1.2s var(--ease-out-soft);
+  }
+
+  .layer.is-prev {
+    visibility: visible;
+    z-index: 1;
+  }
+
+  .layer.is-on {
+    visibility: visible;
+    z-index: 2;
+  }
+
+  /* A pleat is one sixth of the screen showing its own sixth of the
+     photograph: the image inside is as wide as the whole screen and shifted
+     left by the pleat's position, so the six line up into one picture. */
+  .pleat {
+    position: relative;
+    flex: 1 1 0;
+    overflow: hidden;
+  }
+
+  .pleat img {
+    position: absolute;
+    top: 0;
+    left: calc(var(--p) * -100%);
+    width: calc(100% * 6);
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: 50% 22%;
+  }
+
+  /* The live photograph's pleats fall into place, alternately from above
+     and from below, one after another. */
+  .layer.is-on .pleat {
+    animation: pleatDown 1s cubic-bezier(0.77, 0, 0.18, 1) both;
+    animation-delay: calc(var(--pd) + var(--p) * 75ms);
+  }
+
+  .layer.is-on .pleat:nth-child(even) {
+    animation-name: pleatUp;
+  }
+
+  @keyframes pleatDown {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes pleatUp {
+    from {
+      clip-path: inset(100% 0 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* While it falls each pleat shows its fold — a shadow on one side, a
+     highlight on the other — then the cloth settles flat. */
+  .pleat::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.42) 0%,
+      transparent 22%,
+      rgba(255, 240, 210, 0.16) 70%,
+      rgba(0, 0, 0, 0.18) 100%
+    );
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .layer.is-on .pleat::after {
+    animation: fold 1.8s var(--ease) both;
+    animation-delay: calc(var(--pd) + var(--p) * 75ms);
+  }
+
+  @keyframes fold {
+    0%,
+    45% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* A slow push on the live photograph. */
+  .layer.is-on .pleat img {
+    animation: ken 10s var(--ease) both;
+    animation-delay: var(--pd);
+  }
+
+  @keyframes ken {
+    from {
+      scale: 1.08;
+      translate: 0 -2%;
+    }
+    to {
+      scale: 1;
+      translate: 0 0;
+    }
+  }
+
+  /* Wine silk washed over the left for the words, and over the foot for the
+     occasion bar; the occasion's own colour tints it. */
+  .screen__shade {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background:
+      linear-gradient(to top, rgba(20, 6, 10, 0.92) 0%, rgba(20, 6, 10, 0.4) 22%, transparent 42%),
+      linear-gradient(
+        90deg,
+        rgba(28, 8, 14, 0.94) 0%,
+        color-mix(in oklab, var(--accent) 55%, rgba(28, 8, 14, 0.85)) 34%,
+        rgba(28, 8, 14, 0.25) 60%,
+        transparent 78%
+      );
+    transition: background 1.2s var(--ease);
+  }
+
+  .screen__grain {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(217, 184, 114, 0.06) 0 1px, transparent 1px 38px),
+      repeating-linear-gradient(-45deg, rgba(217, 184, 114, 0.06) 0 1px, transparent 1px 38px);
+    mask-image: linear-gradient(90deg, #000 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  /* ================================================================= *
+   * the words
+   * ================================================================= */
+  .hero__grid {
+    max-width: 1640px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2rem;
+    padding-block: clamp(1.6rem, 5vh, 3.5rem) clamp(1rem, 3vh, 2rem);
+  }
+
+  .copy {
+    max-width: 46rem;
+  }
+
+  .copy__eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
+    margin-bottom: clamp(0.8rem, 2vh, 1.3rem);
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: var(--gold-light);
-    margin-bottom: clamp(0.6rem, 1.6vh, 1rem);
+    color: #d9b872;
   }
 
-  .hero__dot {
+  .copy__dot {
     width: 6px;
     height: 6px;
     rotate: 45deg;
-    background: var(--gold);
+    background: #d9b872;
     animation: pulse 3.2s var(--ease) infinite;
   }
 
   @keyframes pulse {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgba(181, 138, 67, 0.55);
+      box-shadow: 0 0 0 0 rgba(217, 184, 114, 0.55);
     }
     60% {
-      box-shadow: 0 0 0 9px rgba(181, 138, 67, 0);
+      box-shadow: 0 0 0 9px rgba(217, 184, 114, 0);
     }
   }
 
-  .hero__title {
-    /* Sized by width and by height, so three lines always fit the screen. */
-    font-size: min(clamp(2.1rem, 0.8rem + 2.6vw, 3.9rem), 6.6vh);
-    line-height: 1.02;
+  .copy__title {
+    /* Sized by width and by height, so the claim stays on three lines and
+       the occasion bar stays on the screen. */
+    font-size: min(clamp(2.4rem, 1rem + 3.4vw, 5rem), 7.4vh);
+    line-height: 1;
     letter-spacing: -0.015em;
+    text-shadow: 0 4px 40px rgba(0, 0, 0, 0.45);
   }
 
-  /* Each line lifts out from behind its own mask. */
   .line {
     display: block;
     overflow: hidden;
@@ -906,8 +808,6 @@ const zariWord = "unstitched".split("");
     }
   }
 
-  /* Zari running through the one italic word: each letter carries its own
-     sheen, offset in time, so a wave of light travels along the word. */
   .zari {
     font-style: italic;
     white-space: nowrap;
@@ -915,14 +815,7 @@ const zariWord = "unstitched".split("");
 
   .zari__c {
     display: inline-block;
-    background: linear-gradient(
-      100deg,
-      var(--gold) 0%,
-      var(--gold-light) 35%,
-      #fff6e2 50%,
-      var(--gold-light) 65%,
-      var(--gold) 100%
-    );
+    background: linear-gradient(100deg, #b58a43 0%, #d9b872 35%, #fff6e2 50%, #d9b872 65%, #b58a43 100%);
     background-size: 400% 100%;
     background-position: 100% 0;
     -webkit-background-clip: text;
@@ -954,170 +847,91 @@ const zariWord = "unstitched".split("");
     }
   }
 
-  .hero__lede {
-    max-width: 50ch;
-    margin-top: clamp(0.6rem, 1.6vh, 1.1rem);
-    font-size: clamp(0.88rem, 0.8rem + 0.2vw, 1rem);
+  /* ---- the live occasion -------------------------------------------------- */
+  .now {
+    margin-top: clamp(1.1rem, 3vh, 1.9rem);
+    padding-left: 1rem;
+    border-left: 2px solid #d9b872;
+  }
+
+  .now__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.6rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(251, 244, 230, 0.7);
+  }
+
+  .now__name {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: clamp(1.35rem, 1rem + 1vw, 1.9rem);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #f3dfae;
+    transition:
+      opacity 0.28s var(--ease),
+      translate 0.5s var(--ease-out-soft),
+      filter 0.28s var(--ease);
+  }
+
+  .now__tradition {
+    max-width: 52ch;
+    min-height: calc(3 * 1.65em);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
     font-weight: 300;
     line-height: 1.65;
-    color: rgba(36, 19, 25, 0.78);
+    color: rgba(251, 244, 230, 0.86);
+    transition:
+      opacity 0.3s var(--ease),
+      translate 0.5s var(--ease-out-soft);
   }
 
-  /* ================= why she wears it ================= */
-  .why {
-    width: 100%;
-    padding-block: clamp(0.6rem, 1.6vh, 1rem);
-    border-top: 1px solid rgba(36, 19, 25, 0.14);
-  }
-
-  .why__label {
-    font-size: 0.64rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: rgba(36, 19, 25, 0.66);
-    margin-bottom: 0.55rem;
-  }
-
-  .why__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-
-  /* Each card takes its turn being lit, so the eye is walked through all
-     four reasons without anyone having to hover. */
-  .why__card {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    column-gap: 0.7rem;
-    align-items: baseline;
-    padding: clamp(0.5rem, 1.2vh, 0.75rem) 0.8rem;
-    border: 1px solid rgba(36, 19, 25, 0.12);
-    background: rgba(255, 249, 238, 0.55);
-    backdrop-filter: blur(6px);
-    overflow: hidden;
-    transition: border-color 0.4s var(--ease), background 0.4s var(--ease);
-  }
-
-  .why__card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%);
+  .now__name.is-out,
+  .now__tradition.is-out {
     opacity: 0;
-    animation: turn 10s var(--ease) infinite;
-    animation-delay: calc(var(--t0) + 1.2s + var(--i) * 2.5s);
+    translate: 0 8px;
   }
 
-  .why__card::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--gold-light);
-    scale: 1 0;
-    transform-origin: top;
-    animation: turnBar 10s var(--ease) infinite;
-    animation-delay: calc(var(--t0) + 1.2s + var(--i) * 2.5s);
+  .now__name.is-out {
+    filter: blur(4px);
   }
 
-  @keyframes turn {
-    0%,
-    30%,
-    100% {
-      opacity: 0;
-    }
-    6%,
-    22% {
-      opacity: 1;
-    }
-  }
-
-  @keyframes turnBar {
-    0%,
-    30%,
-    100% {
-      scale: 1 0;
-    }
-    6%,
-    22% {
-      scale: 1 1;
-    }
-  }
-
-  .why__card:hover {
-    border-color: rgba(217, 184, 114, 0.5);
-  }
-
-  .why__card:hover::before {
-    animation: none;
-    opacity: 1;
-  }
-
-  .why__card > * {
-    position: relative;
-  }
-
-  .why__deva {
-    grid-row: span 2;
-    align-self: center;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    line-height: 1;
-    color: var(--gold-light);
-    text-shadow: 0 0 18px rgba(217, 184, 114, 0.35);
-  }
-
-  .why__title {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--on-dark);
-  }
-
-  .why__line {
-    font-size: 0.76rem;
-    line-height: 1.45;
-    color: rgba(36, 19, 25, 0.74);
-  }
-
-  /* ================= actions ================= */
-  .hero__actions {
+  /* ---- actions ------------------------------------------------------------- */
+  .copy__actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.7rem;
-    margin-top: clamp(0.9rem, 2.2vh, 1.5rem);
+    margin-top: clamp(1.1rem, 3vh, 1.8rem);
   }
 
-  .hero__actions .btn {
-    padding: 0.85rem 1.35rem;
+  .copy__actions .btn {
+    padding: 0.9rem 1.45rem;
     letter-spacing: 0.14em;
-    white-space: nowrap;
   }
 
-  .hero__cta {
+  .copy__cta {
     position: relative;
     overflow: hidden;
   }
 
-  .hero__cta svg {
+  .copy__cta svg {
     width: 1rem;
     height: 1rem;
     transition: translate 0.35s var(--ease);
   }
 
-  .hero__cta:hover svg {
+  .copy__cta:hover svg {
     translate: 4px 0;
   }
 
-  /* A glint across the gold button every few seconds. */
-  .hero__cta::after {
+  .copy__cta::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -1137,337 +951,115 @@ const zariWord = "unstitched".split("");
     }
   }
 
-  /* ================================================================= *
-   * stage
-   * ================================================================= */
-  .hero__stage {
-    position: relative;
-    justify-self: center;
-    /* Sized from the height available, so the arch never pushes the base
-       off the screen. */
-    width: min(100%, calc((100svh - 16rem) * 0.69));
-    min-width: 15rem;
-    perspective: 1400px;
-    opacity: 0;
-    scale: 0.94;
-    animation: stageIn 1.4s var(--ease-out-soft) calc(var(--t0) + 0.1s) forwards;
+  .copy__alt {
+    --btn-bg: rgba(28, 8, 14, 0.35);
+    --btn-fg: #fbf4e6;
+    border: 1px solid rgba(251, 244, 230, 0.6);
+    backdrop-filter: blur(6px);
   }
 
-  @keyframes stageIn {
-    to {
-      opacity: 1;
-      scale: 1;
-    }
+  .copy__alt:hover {
+    --btn-bg: #fbf4e6;
+    --btn-fg: #2b0a13;
+    border-color: #fbf4e6;
   }
 
-  .arch {
-    margin: 0;
-    position: relative;
-    transform: rotateY(calc(var(--mx) * 5deg)) rotateX(calc(var(--my) * -4deg));
-    transition: transform 0.8s var(--ease-out-soft);
-  }
-
-  .arch__frame {
-    position: relative;
-    padding: clamp(0.4rem, 0.8vw, 0.6rem);
-    border: 1px solid rgba(181, 138, 67, 0.6);
-    border-radius: 50% 50% 6px 6px / 38% 38% 2% 2%;
-    background: rgba(181, 138, 67, 0.07);
-    box-shadow:
-      0 36px 80px -20px rgba(66, 20, 36, 0.35),
-      0 0 70px color-mix(in oklab, var(--accent) 30%, transparent);
-    transition: box-shadow 1.2s var(--ease);
-  }
-
-  .arch__ring {
-    position: absolute;
-    inset: -0.55rem;
-    border: 1px solid rgba(181, 138, 67, 0.25);
-    border-radius: 50% 50% 8px 8px / 38% 38% 2% 2%;
-    pointer-events: none;
-    animation: breathe 7s var(--ease) infinite alternate;
-  }
-
-  @keyframes breathe {
-    to {
-      inset: -1.1rem;
-      opacity: 0.35;
-    }
-  }
-
-  .arch__stack {
-    position: relative;
+  /* ---- the Hindi word ------------------------------------------------------ */
+  .deva {
     display: grid;
-    overflow: hidden;
-    border-radius: 50% 50% 4px 4px / 38% 38% 1.5% 1.5%;
-    background: #12080c;
-  }
-
-  /* Every photograph sits in the same cell. The live one opens out of the
-     centre in a lozenge — the buti shape — over the one it replaces. */
-  .arch__img {
-    grid-area: 1 / 1;
-    display: block;
-    width: 100%;
-    aspect-ratio: 3 / 4.1;
-    object-fit: cover;
-    object-position: 50% 24%;
-    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
-    scale: 1.18;
-    z-index: 0;
-  }
-
-  .arch__img.is-prev {
-    clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%);
-    scale: 1.06;
-    z-index: 1;
-  }
-
-  .arch__img.is-on {
-    clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%);
-    scale: 1;
-    z-index: 2;
-    transition:
-      clip-path 1.15s cubic-bezier(0.77, 0, 0.18, 1),
-      scale 1.6s var(--ease-out-soft);
-    animation: ken 9s var(--ease) 1.4s forwards;
-  }
-
-  @keyframes ken {
-    to {
-      scale: 1.07;
-      object-position: 50% 32%;
-    }
-  }
-
-  /* A gold lozenge that flies outward as each scene opens. */
-  .arch__burst {
-    grid-area: 1 / 1;
-    place-self: center;
-    z-index: 3;
-    width: 40%;
-    aspect-ratio: 1;
-    rotate: 45deg;
-    border: 2px solid var(--gold-light);
-    box-shadow:
-      0 0 30px rgba(217, 184, 114, 0.6),
-      inset 0 0 30px rgba(217, 184, 114, 0.4);
-    opacity: 0;
-    scale: 0;
+    align-self: stretch;
+    place-items: center;
     pointer-events: none;
-    animation: burst 1.15s cubic-bezier(0.22, 0.61, 0.36, 1) var(--t0);
+    transform: translate(calc(var(--mx) * 14px), calc(var(--my) * 10px));
+    transition: transform 1.2s var(--ease-out-soft);
   }
 
-  @keyframes burst {
-    0% {
-      scale: 0;
-      opacity: 1;
-    }
-    100% {
-      scale: 3.4;
-      opacity: 0;
-    }
-  }
-
-  .arch__wash {
+  .deva__word {
     grid-area: 1 / 1;
-    z-index: 4;
-    background: linear-gradient(to top, rgba(18, 8, 12, 0.88) 0%, transparent 44%);
-    pointer-events: none;
-  }
-
-  .arch__glint {
-    grid-area: 1 / 1;
-    z-index: 5;
-    pointer-events: none;
-    background: linear-gradient(100deg, transparent 42%, rgba(255, 246, 226, 0.2) 50%, transparent 58%);
-    background-size: 300% 100%;
-    animation: sweep 9s var(--ease) 0.6s infinite;
-  }
-
-  @keyframes sweep {
-    0%,
-    62% {
-      background-position: 150% 0;
-    }
-    100% {
-      background-position: -60% 0;
-    }
-  }
-
-  .arch__cap {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: clamp(1rem, 2.4vh, 1.6rem);
-    z-index: 6;
-    display: grid;
-    gap: 0.25rem;
-    justify-items: center;
-    text-align: center;
-    pointer-events: none;
-  }
-
-  .arch__worn {
-    font-size: 0.6rem;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: rgba(246, 239, 228, 0.75);
-  }
-
-  .arch__name {
+    writing-mode: vertical-rl;
     font-family: var(--font-display);
-    padding-inline: 1.2rem;
-    font-size: clamp(1.1rem, 0.85rem + 0.8vw, 1.55rem);
-    line-height: 1.15;
-    text-wrap: balance;
-    color: #f6efe4;
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.65);
-    transition:
-      opacity 0.28s var(--ease),
-      translate 0.5s var(--ease-out-soft),
-      filter 0.28s var(--ease);
-  }
-
-  .arch__name.is-out {
+    font-size: min(clamp(4rem, 2rem + 6vw, 9rem), 14vh);
+    line-height: 1;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(243, 223, 174, 0.75);
+    text-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
     opacity: 0;
-    translate: 0 10px;
-    filter: blur(6px);
+    translate: 0 18%;
+    transition:
+      opacity 0.9s var(--ease),
+      translate 1.1s var(--ease-out-soft);
   }
 
-  .arch__city {
-    font-size: 0.56rem;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #d9b872;
+  .deva__word.is-on {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.35s;
   }
 
-  .arch__keystone {
-    position: absolute;
-    top: -0.4rem;
-    left: 50%;
-    translate: -50% 0;
-    width: 0.8rem;
-    height: 0.8rem;
-    rotate: 45deg;
-    background: var(--gold);
-    box-shadow:
-      0 0 0 4px var(--dark),
-      0 0 22px rgba(217, 184, 114, 0.8);
+  .deva__word.is-out {
+    translate: 0 -18%;
   }
 
   /* ================================================================= *
-   * occasions rail
+   * the occasions
    * ================================================================= */
-  .orail {
-    align-self: center;
-  }
-
-  .orail__label {
+  .reel {
+    max-width: 1640px;
+    /* Keep the arrows clear of the floating WhatsApp button. */
+    padding-right: calc(var(--gutter) + 4.6rem);
     display: grid;
-    gap: 0.15rem;
-    margin-bottom: clamp(0.6rem, 1.6vh, 1rem);
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 1.5rem;
+    padding-bottom: clamp(0.9rem, 2.4vh, 1.4rem);
   }
 
-  .orail__label span:first-child {
-    font-size: 0.64rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold-light);
-  }
-
-  .orail__label-em {
-    font-family: var(--font-display);
-    font-size: clamp(1.05rem, 0.85rem + 0.6vw, 1.4rem);
-    line-height: 1.2;
-  }
-
-  .orail__list {
-    border-top: 1px solid rgba(36, 19, 25, 0.14);
-  }
-
-  .orail__item {
-    position: relative;
-    border-bottom: 1px solid rgba(36, 19, 25, 0.14);
-  }
-
-  .orail__head {
+  .reel__list {
     display: grid;
-    grid-template-columns: 1.8rem 1fr auto;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: clamp(0.55rem, 1.35vh, 0.8rem) 0;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(0.6rem, 1.6vw, 1.4rem);
+  }
+
+  .reel__tab {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0 0 0.2rem;
     border: 0;
     background: none;
-    color: rgba(36, 19, 25, 0.72);
     text-align: left;
+    color: rgba(251, 244, 230, 0.6);
     cursor: pointer;
-    transition: color 0.35s var(--ease), padding 0.45s var(--ease-out-soft);
+    transition: color 0.3s var(--ease);
   }
 
-  .orail__head:hover,
-  .orail__item.is-on .orail__head {
-    color: var(--on-dark);
+  .reel__tab:hover,
+  .reel__tab[aria-selected="true"] {
+    color: #fbf4e6;
   }
 
-  .orail__item.is-on .orail__head {
-    padding-left: 0.4rem;
-  }
-
-  .orail__no {
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .orail__name {
-    font-family: var(--font-display);
-    font-size: clamp(0.92rem, 0.8rem + 0.35vw, 1.1rem);
-    line-height: 1.2;
-  }
-
-  .orail__swatch {
-    width: 0.7rem;
-    height: 0.7rem;
-    rotate: 45deg;
-    background: var(--sw);
-    border: 1px solid rgba(217, 184, 114, 0.7);
-    transition: scale 0.4s var(--ease-out-soft), box-shadow 0.4s var(--ease);
-  }
-
-  .orail__item.is-on .orail__swatch {
-    scale: 1.35;
-    box-shadow: 0 0 14px var(--sw);
-  }
-
-  /* The bar fills while its scene is live — a visible clock for the rotator. */
-  .orail__bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 1px;
+  /* Each occasion's clock: a hairline that fills while it is live. */
+  .reel__clock {
+    display: block;
+    height: 2px;
+    margin-bottom: 0.45rem;
+    background: rgba(251, 244, 230, 0.22);
     overflow: hidden;
   }
 
-  .orail__bar i {
+  .reel__clock i {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    background: linear-gradient(90deg, #b58a43, #f3dfae);
     transform-origin: left;
     scale: 0 1;
   }
 
-  .orail__item.is-on .orail__bar i {
-    animation: fill 6.5s linear forwards;
+  .reel__tab[aria-selected="true"] .reel__clock i {
+    animation: fill 7s linear forwards;
   }
 
-  .hero.is-paused .orail__item.is-on .orail__bar i {
+  .hero.is-paused .reel__tab[aria-selected="true"] .reel__clock i {
     animation-play-state: paused;
   }
 
@@ -1477,93 +1069,58 @@ const zariWord = "unstitched".split("");
     }
   }
 
-  /* The live occasion opens to its tradition. */
-  .orail__body {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.6s var(--ease-out-soft);
+  .reel__no {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    color: #d9b872;
   }
 
-  .orail__item.is-on .orail__body {
-    grid-template-rows: 1fr;
+  .reel__name {
+    font-family: var(--font-display);
+    font-size: clamp(0.85rem, 0.7rem + 0.4vw, 1.08rem);
+    line-height: 1.2;
   }
 
-  .orail__inner {
-    overflow: hidden;
-    padding-left: 2.7rem;
-  }
-
-  .orail__tradition {
-    font-size: 0.8rem;
-    line-height: 1.6;
-    color: rgba(36, 19, 25, 0.72);
-    opacity: 0;
-    translate: 0 8px;
-    transition:
-      opacity 0.5s var(--ease) 0.1s,
-      translate 0.5s var(--ease) 0.1s;
-  }
-
-  .orail__item.is-on .orail__tradition {
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  .orail__link {
-    display: inline-flex;
-    align-items: center;
+  .reel__nav {
+    display: flex;
     gap: 0.4rem;
-    margin: 0.5rem 0 0.85rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--gold-light);
   }
 
-  .orail__link svg {
-    width: 0.95rem;
-    height: 0.95rem;
-    transition: translate 0.35s var(--ease);
+  .reel__arrow {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border: 1px solid rgba(217, 184, 114, 0.55);
+    border-radius: 50%;
+    background: rgba(28, 8, 14, 0.4);
+    backdrop-filter: blur(6px);
+    color: #f3dfae;
+    cursor: pointer;
+    transition:
+      background 0.3s var(--ease),
+      color 0.3s var(--ease);
   }
 
-  .orail__link:hover svg {
-    translate: 4px 0;
+  .reel__arrow svg {
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
-  /* Only used when the rail lies flat in a row (see responsive). */
-  .orail__wide {
-    display: none;
-    margin-top: 0.8rem;
-    max-width: 70ch;
-    font-size: 0.84rem;
-    line-height: 1.65;
-    color: rgba(36, 19, 25, 0.72);
-    transition: opacity 0.28s var(--ease);
-  }
-
-  .orail__wide.is-out {
-    opacity: 0;
+  .reel__arrow:hover {
+    background: #d9b872;
+    color: #2b0a13;
   }
 
   /* ================================================================= *
-   * base: numbers + ticker
+   * the ticker
    * ================================================================= */
-  .hero__base {
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero__base .shell {
-    max-width: 1640px;
-  }
-
   .values {
     position: relative;
     padding: 0.6rem 0;
-    border-top: 1px solid rgba(36, 19, 25, 0.12);
-    background: rgba(74, 19, 38, 0.08);
+    border-top: 1px solid rgba(181, 138, 67, 0.4);
+    background: #2b0a13;
     overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   }
 
   .values__track {
@@ -1598,14 +1155,14 @@ const zariWord = "unstitched".split("");
   .values__deva {
     font-family: var(--font-display);
     font-size: 1rem;
-    color: var(--gold-light);
+    color: #d9b872;
   }
 
   .values__en {
     font-size: 0.68rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(36, 19, 25, 0.72);
+    color: rgba(246, 239, 228, 0.68);
   }
 
   .values__sep {
@@ -1617,196 +1174,96 @@ const zariWord = "unstitched".split("");
   /* ================================================================= *
    * responsive
    * ================================================================= */
-
-  /* Keep both buttons on one row beside a narrower copy column. */
-  @media (min-width: 1101px) {
-    .hero__actions {
-      flex-wrap: nowrap;
-    }
-  }
-
-  @media (min-width: 1101px) and (max-width: 1440px) {
-    .hero__actions .btn {
-      padding-inline: 1.05rem;
-      font-size: 0.72rem;
-    }
-  }
-
-  /* Short laptop screens: keep everything above the fold by dropping the
-     second line of each reason and tightening the rail. */
-  @media (min-width: 1101px) and (max-height: 780px) {
-    .why__line {
+  /* Short screens: the occasion's name stays, its paragraph goes, so the
+     occasion bar and the ticker still land on the first screen. */
+  @media (min-width: 761px) and (max-height: 760px) {
+    .now__tradition {
       display: none;
     }
-    .why__deva {
-      grid-row: auto;
-    }
-    .hero__lede {
-      line-height: 1.55;
-    }
-    .orail__tradition {
-      font-size: 0.76rem;
-      line-height: 1.5;
-    }
-  }
-
-  /* Two columns: copy beside the stage, the rail below them. */
-  @media (max-width: 1100px) {
     .hero__grid {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-      row-gap: 2rem;
-      padding-top: 0.5rem;
+      padding-block: 1.2rem 0.8rem;
     }
-    .hero__stage {
-      width: min(100%, 24rem);
+  }
+
+  @media (max-width: 900px) {
+    .reel__list {
+      grid-template-columns: repeat(5, minmax(7rem, 1fr));
+      overflow-x: auto;
+      scrollbar-width: none;
     }
-    .orail {
-      grid-column: 1 / -1;
-    }
-    .orail__list {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0 1rem;
-      border-top: 0;
-    }
-    .orail__item {
-      border-bottom: 0;
-      border-top: 1px solid rgba(36, 19, 25, 0.14);
-    }
-    .orail__bar {
-      top: -1px;
-      bottom: auto;
-    }
-    .orail__head {
-      grid-template-columns: 1fr auto;
-    }
-    .orail__no {
+    .reel__list::-webkit-scrollbar {
       display: none;
     }
-    .orail__item.is-on .orail__head {
-      padding-left: 0;
-    }
-    /* In a row, the open tradition would only fit one column; show it
-       across the full width under the row instead. */
-    .orail__body {
+    .reel__nav {
       display: none;
     }
-    .orail__wide {
-      display: block;
-    }
-    .why__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .reel {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
   @media (max-width: 760px) {
     .hero {
-      padding-top: 5.2rem;
+      min-height: calc(100svh - 2.4rem - 4.2rem);
+    }
+    /* On a phone the words sit at the foot over a deeper wash. */
+    .screen__shade {
+      background:
+        linear-gradient(
+          to top,
+          rgba(20, 6, 10, 0.96) 0%,
+          color-mix(in oklab, var(--accent) 45%, rgba(20, 6, 10, 0.85)) 45%,
+          rgba(20, 6, 10, 0.2) 75%,
+          transparent 100%
+        );
     }
     .hero__grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .hero__actions .btn {
-      flex: 1 1 auto;
-      white-space: normal;
-      text-align: center;
-    }
-    .hero__stage {
-      order: -1;
-      width: min(78%, 20rem);
-      min-width: 0;
-      margin-block: 0.5rem 0.5rem;
-    }
-    .hero__title {
-      font-size: clamp(2.2rem, 1rem + 6vw, 3.2rem);
-    }
-    .orail__list {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      gap: 0.5rem;
-      margin-inline: calc(var(--gutter) * -1);
-      padding-inline: var(--gutter);
-    }
-    .orail__list::-webkit-scrollbar {
-      display: none;
-    }
-    .orail__item {
-      flex: 0 0 auto;
-      scroll-snap-align: start;
-      border: 1px solid rgba(36, 19, 25, 0.2);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .orail__head {
-      padding: 0.55rem 0.95rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
       gap: 0.6rem;
     }
-    .orail__item.is-on {
-      border-color: var(--gold-light);
-      background: color-mix(in oklab, var(--accent) 50%, transparent);
+    .deva {
+      align-self: start;
     }
-    .orail__item.is-on .orail__head {
-      padding-left: 0.95rem;
+    .deva__word {
+      font-size: 3.4rem;
     }
-    .orail__bar {
-      top: auto;
-      bottom: 0;
-      left: 1rem;
-      right: 1rem;
+    .copy__title {
+      font-size: clamp(2.2rem, 1rem + 6vw, 3rem);
     }
-  }
-
-  @media (max-width: 420px) {
-    .why__grid {
-      grid-template-columns: 1fr;
+    /* A phone shows the face first; keep the words short beneath it. */
+    .now__tradition,
+    .copy__alt {
+      display: none;
+    }
+    .copy__eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+    }
+    .reel {
+      padding-right: var(--gutter);
     }
   }
 
   /* ================================================================= *
    * reduced motion
-   * Everything decorative stops. The scene still changes — the rotator
-   * waits for the rail instead of advancing itself — and the copy is
-   * simply shown rather than animated in.
    * ================================================================= */
   @media (prefers-reduced-motion: reduce) {
-    .drape {
-      display: none;
-    }
-    .hero__bg,
-    .hero__bg::after,
-    .pallu__zari,
-    .arch__glint,
-    .arch__ring,
-    .arch__burst,
-    .hero__dot,
-    .hero__cta::after,
-    .why__card::before,
-    .why__card::after,
+    .copy__dot,
+    .copy__cta::after,
     .values__track,
-    .arch__img.is-on,
-    .orail__item.is-on .orail__bar i {
+    .layer.is-on .pleat,
+    .layer.is-on .pleat::after,
+    .layer.is-on .pleat img,
+    .reel__tab[aria-selected="true"] .reel__clock i {
       animation: none !important;
     }
-    .buti,
-    .hero__spot {
-      display: none;
-    }
-    .arch__img,
-    .arch__img.is-on {
-      transition: none;
-      scale: 1;
-    }
-    .orail__item.is-on .orail__bar i {
+    .reel__tab[aria-selected="true"] .reel__clock i {
       scale: 1 1;
     }
-    .rise,
-    .hero__stage,
-    .pallu {
+    .rise {
       opacity: 1;
       translate: none;
-      scale: 1;
       animation: none;
     }
     .line__in {
@@ -1820,10 +1277,16 @@ const zariWord = "unstitched".split("");
       rotate: none;
       animation: none;
       background: none;
-      -webkit-text-fill-color: var(--gold-light);
+      -webkit-text-fill-color: #d9b872;
     }
-    .arch {
+    .layer,
+    .deva {
       transform: none;
+    }
+    .deva__word,
+    .now__name,
+    .now__tradition {
+      transition: none;
     }
   }
 </style>

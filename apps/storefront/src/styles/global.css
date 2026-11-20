@@ -5,6 +5,9 @@
    ========================================================================== */
 
 :root {
+  /* Light only: opt out of the browser's forced dark mode. */
+  color-scheme: light only;
+
   /* --- brand ---------------------------------------------------------- */
   --wine: #651d35;
   --wine-deep: #4a1326;
